@@ -60,14 +60,14 @@ interface UserStats {
 interface Activity {
   id: string
   activityType: string
-  bookId: string
-  details: string
-  createdAt: string
   books: {
     id: string
     title: string
     coverImage: string
+    slug: string
   }
+  details: string
+  createdAt: string
 }
 
 interface DailyGoal {
@@ -256,7 +256,7 @@ export function DashboardClient({
                               {getActivityTypeText(activity.activityType)}{" "}
                               {activity.books && (
                                 <Link
-                                  href={`/books/${activity.books.id}`}
+                                  href={`/books/${activity.books.slug}`}
                                   className="text-blue-600 hover:underline dark:text-blue-400"
                                 >
                                   {activity.books.title}

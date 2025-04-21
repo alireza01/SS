@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import AddWordForm from '@/components/vocabulary/add-word-form';
 import WordList from '@/components/vocabulary/word-list';
-import { createServerClient } from '@/lib/supabase/server';
+import { createServerClient } from '@/lib/supabase/app-server';
 
 async function getVocabulary() {
   const supabase = createServerClient();

@@ -6,7 +6,7 @@ import { redirect } from "next/navigation"
 import { BookOpen, LayoutDashboard, LogOut, Settings, Users, BookText, Key } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/app-server"
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const supabase = createServerClient()

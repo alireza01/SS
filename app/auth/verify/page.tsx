@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/app-server"
 import { redirect } from "next/navigation"
 import { VerifyEmailForm } from "@/components/auth/verify-email-form"
 import { Metadata } from "next"

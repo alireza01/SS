@@ -1,16 +1,22 @@
 import { createClient } from '@supabase/supabase-js'
 
 import { handleError, AuthenticationError } from '@/lib/utils/error-handling'
-import type { Database } from '@/types/supabase'
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from './config'
+import type { Database } from './config'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Client with anonymous key for public operations
+export const supabase = createClient<Database>(SUPABASE_URL!, SUPABASE_ANON_KEY!)
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseKey)
+/**
+ * Creates a Supabase client with service role for admin operations
+ * @returns Supabase client with admin privileges
+ */
+export function getServerSupabase() {
+  if (!SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable')
+  }
 
-export const getServerSupabase = () => {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-  return createClient<Database>(supabaseUrl, serviceRoleKey, {
+  return createClient<Database>(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -36,7 +42,10 @@ export async function getUserProfile(userId: string) {
   }
 }
 
-export async function updateUserProfile(userId: string, updates: Partial<Database['public']['Tables']['profiles']['Update']>) {
+export async function updateUserProfile(
+  userId: string, 
+  updates: Partial<Database['public']['Tables']['profiles']['Update']>
+) {
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -56,10 +65,15 @@ export async function updateUserProfile(userId: string, updates: Partial<Databas
 
 export async function getBooks(level?: string) {
   try {
-    const query = supabase.from('books').select('*')
+    const query = supabase
+      .from('books')
+      .select('*, categories(*)')
+      .eq('isActive', true)
+    
     if (level) {
       query.eq('level', level)
     }
+    
     const { data, error } = await query
 
     if (error) throw error
@@ -73,7 +87,7 @@ export async function getUserProgress(userId: string, bookId?: string) {
   try {
     const query = supabase
       .from('user_progress')
-      .select('*, books(*)')
+      .select('*, books!inner(*)')
       .eq('user_id', userId)
     
     if (bookId) {
@@ -100,6 +114,7 @@ export async function updateUserProgress(
       .upsert({
         user_id: userId,
         book_id: bookId,
+        last_read_at: new Date().toISOString(),
         ...updates,
       })
       .select()
@@ -118,7 +133,7 @@ export async function getUserVocabulary(userId: string, bookId?: string) {
   try {
     const query = supabase
       .from('vocabulary')
-      .select('*, books(*)')
+      .select('*, books!inner(*)')
       .eq('user_id', userId)
     
     if (bookId) {

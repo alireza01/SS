@@ -18,9 +18,13 @@ interface ReadingSession {
   id: string
   book_id: string
   book_title: string
+  book: {
+    slug: string
+  }
+  start_time: string
+  end_time: string
+  duration: number
   pages_read: number
-  reading_time: number
-  session_date: string
 }
 
 interface QueryResult {
@@ -230,7 +234,7 @@ export function ReadingProgress({ userId }: ReadingProgressProps) {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
-                            <Link href={`/books/${session.book_id}`} className="font-medium hover:underline">
+                            <Link href={`/books/${session.book.slug}`} className="font-medium hover:underline">
                               {session.book_title}
                             </Link>
                             <Badge variant="outline">{formatDate(session.session_date)}</Badge>

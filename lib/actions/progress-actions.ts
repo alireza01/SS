@@ -80,7 +80,16 @@ export async function saveReadingProgress(bookId: string, currentPage: number, r
 
     // به‌روزرسانی صفحه داشبورد
     revalidatePath("/dashboard")
-    revalidatePath(`/books/${bookId}`)
+    const { data: book } = await supabase
+      .from("books")
+      .select("slug")
+      .eq("id", bookId)
+      .single()
+
+    if (book) {
+      revalidatePath(`/books/${book.slug}`)
+      revalidatePath(`/books/${book.slug}/read`)
+    }
 
     return { success: true }
   } catch (error) {
@@ -226,7 +235,15 @@ export async function saveBookmark(bookId: string, page: number, add: boolean) {
     }
 
     // به‌روزرسانی صفحه
-    revalidatePath(`/books/${bookId}/read`)
+    const { data: book } = await supabase
+      .from("books")
+      .select("slug")
+      .eq("id", bookId)
+      .single()
+
+    if (book) {
+      revalidatePath(`/books/${book.slug}/read`)
+    }
 
     return { success: true }
   } catch (error) {

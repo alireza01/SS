@@ -10,7 +10,7 @@ import { UserSettings } from "@/components/profile/user-settings"
 import { UserVocabulary } from "@/components/profile/user-vocabulary"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/app-server"
 
 import type { User } from "@supabase/supabase-js"
 

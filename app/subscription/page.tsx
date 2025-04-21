@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { SubscriptionClient } from "@/components/subscription/subscription-client"
-import { createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/app-server"
 
 export default async function SubscriptionPage() {
   const supabase = createServerClient()

@@ -7,7 +7,7 @@ import { DashboardClient } from "@/components/dashboard/dashboard-client"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/app-server"
 
 export const metadata = {
   title: "داشبورد | کتاب‌یار",

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { SettingsClient } from "@/components/settings/settings-client"
-import { createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/app-server"
 
 import type { Metadata } from "next"
 

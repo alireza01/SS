@@ -26,6 +26,7 @@ interface WordToReview {
   books: {
     id: string
     title: string
+    slug: string
   } | null
 }
 
@@ -378,7 +379,7 @@ export function ReviewClient({ wordsToReview, wordStats }: ReviewClientProps) {
                 {currentWord.books && (
                   <p className="text-muted-foreground mb-6 text-sm">
                     از کتاب:{" "}
-                    <Link href={`/books/${currentWord.books.id}`} className="hover:text-primary underline">
+                    <Link href={`/books/${currentWord.books.slug}`} className="hover:text-primary underline">
                       {currentWord.books.title}
                     </Link>
                   </p>

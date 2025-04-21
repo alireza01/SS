@@ -24,6 +24,7 @@ interface Book {
   coverImage: string | null
   totalPages: number
   isPremium: boolean
+  slug: string
 }
 
 interface BookReaderWithFlipProps {
@@ -91,7 +92,7 @@ export function BookReaderWithFlip({
     if (isPreview) {
       params.set("preview", "true")
     }
-    router.replace(`/books/${book.id}/read?${params.toString()}`)
+    router.replace(`/books/${book.slug}/read?${params.toString()}`)
 
     // Save reading progress
     if (isLoggedIn) {
@@ -183,7 +184,7 @@ export function BookReaderWithFlip({
       {/* Top navigation */}
       <div className="mb-4 flex items-center justify-between">
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/books/${book.id}`}>
+          <Link href={`/books/${book.slug}`}>
             <ArrowLeft className="ml-1 size-4" />
             بازگشت به صفحه کتاب
           </Link>
@@ -209,7 +210,7 @@ export function BookReaderWithFlip({
               شما در حال مشاهده پیش‌نمایش این کتاب هستید. برای مطالعه کامل، لطفاً کتاب را خریداری کنید.
             </p>
             <Button className="mt-2" asChild>
-              <Link href={`/books/${book.id}`}>خرید کتاب</Link>
+              <Link href={`/books/${book.slug}`}>خرید کتاب</Link>
             </Button>
           </div>
         </Card>

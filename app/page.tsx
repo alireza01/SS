@@ -9,7 +9,7 @@ import { PopularCategories } from "@/components/home/popular-categories"
 import { TestimonialSection } from "@/components/home/testimonial-section"
 import { TrendingBooks } from "@/components/home/trending-books"
 import { Button } from "@/components/ui/button"
-import { createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/app-server"
 
 export default async function Home() {
   const supabase = createServerClient()

@@ -26,6 +26,9 @@ interface ReadingSession {
   startTime: string
   endTime: string
   duration: number
+  book: {
+    slug: string
+  }
 }
 
 export function ReadingHistory({ userId }: ReadingHistoryProps) {
@@ -194,7 +197,7 @@ export function ReadingHistory({ userId }: ReadingHistoryProps) {
 
                     <div className="flex shrink-0 items-center">
                       <Button variant="outline" size="sm" asChild>
-                        <a href={`/books/${session.bookId}/read?page=${session.endPage}`}>ادامه مطالعه</a>
+                        <a href={`/books/${session.book.slug}/read?page=${session.endPage}`}>ادامه مطالعه</a>
                       </Button>
                     </div>
                   </div>

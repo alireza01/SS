@@ -45,6 +45,7 @@ interface Book {
     page: number
     text: string
   }[]
+  slug: string
 }
 
 interface Word {
@@ -135,7 +136,7 @@ export function BookReader({
     if (isPreview) {
       params.set("preview", "true")
     }
-    router.replace(`/books/${book.id}/read?${params.toString()}`)
+    router.replace(`/books/${book.slug}/read?${params.toString()}`)
 
     // ذخیره پیشرفت مطالعه کاربر
     saveReadingProgress(book.id, page, readingTime)
@@ -410,7 +411,7 @@ export function BookReader({
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" asChild>
-              <Link href={`/books/${book.id}`}>
+              <Link href={`/books/${book.slug}`}>
                 <ArrowLeft className="size-5" />
                 <span className="sr-only">بازگشت</span>
               </Link>
@@ -423,7 +424,7 @@ export function BookReader({
           <div className="flex items-center gap-2">
             {isPreview && (
               <Button size="sm" asChild>
-                <Link href={`/books/${book.id}`}>خرید کتاب</Link>
+                <Link href={`/books/${book.slug}`}>خرید کتاب</Link>
               </Button>
             )}
             <TooltipProvider>
@@ -477,7 +478,7 @@ export function BookReader({
                   </p>
                 </div>
                 <Button asChild>
-                  <Link href={`/books/${book.id}`}>خرید کتاب</Link>
+                  <Link href={`/books/${book.slug}`}>خرید کتاب</Link>
                 </Button>
               </CardContent>
             </Card>

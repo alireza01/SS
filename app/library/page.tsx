@@ -5,7 +5,7 @@ import { notFound } from "next/navigation"
 import { LibraryClient } from "@/components/library/library-client"
 import { LibraryHeader } from "@/components/library/library-header"
 import { Skeleton } from "@/components/ui/skeleton"
-import { createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/app-server"
 import { type Book } from "@/types/books"
 
 export const metadata = {

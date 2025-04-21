@@ -2,7 +2,7 @@ import { Suspense } from "react"
 
 import { Skeleton } from "@/components/ui/skeleton"
 import { FlashcardSystem } from "@/components/vocabulary/flashcard-system"
-import { createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/app-server"
 
 export const metadata = {
   title: "مرور واژگان | کتاب‌یار",

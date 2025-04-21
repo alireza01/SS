@@ -15,6 +15,7 @@ interface Book {
   coverImage: string | null
   level: string
   isPremium?: boolean
+  slug: string
 }
 
 interface RelatedBooksProps {
@@ -59,7 +60,7 @@ export function RelatedBooks({ books }: RelatedBooksProps) {
       {books.map((book) => (
         <Link
           key={book.id}
-          href={`/books/${book.id}`}
+          href={`/books/${book.slug}`}
           className="hover:border-primary group block overflow-hidden rounded-md border transition-colors"
         >
           <div className="relative aspect-[2/3] overflow-hidden">

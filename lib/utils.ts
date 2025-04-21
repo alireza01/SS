@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { createServerClient } from "./supabase/server"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -146,4 +147,75 @@ export function getLevelText(level: string): string {
     default:
       return level
   }
+}
+
+export interface SlugOptions {
+  table?: string
+  maxLength?: number
+  separator?: string
+}
+
+const defaultSlugOptions: SlugOptions = {
+  table: "books",
+  maxLength: 100,
+  separator: "-"
+}
+
+/**
+ * Generates a unique SEO-friendly slug from a string
+ * Handles multiple languages including Persian/Arabic
+ */
+export async function generateUniqueSlug(
+  str: string,
+  options: SlugOptions = defaultSlugOptions
+): Promise<string> {
+  const { table, maxLength, separator } = { ...defaultSlugOptions, ...options }
+  
+  // Basic slug generation
+  let slug = str
+    .toLowerCase()
+    // Handle Persian/Arabic characters
+    .replace(/[^a-z0-9\u0600-\u06FF\s-]/g, "")
+    // Replace spaces with separator
+    .replace(/\s+/g, separator!)
+    // Remove multiple separators
+    .replace(new RegExp(`${separator}+`, "g"), separator!)
+    // Trim separators from start and end
+    .replace(new RegExp(`^${separator}+|${separator}+$`, "g"), "")
+    
+  // Trim to max length while respecting word boundaries
+  if (maxLength && slug.length > maxLength) {
+    slug = slug.substring(0, maxLength).replace(new RegExp(`${separator}+$`), "")
+  }
+
+  // Check uniqueness in database
+  const supabase = createServerClient()
+  let isUnique = false
+  let counter = 0
+  let uniqueSlug = slug
+
+  while (!isUnique) {
+    const { data } = await supabase
+      .from(table!)
+      .select("slug")
+      .eq("slug", uniqueSlug)
+      .maybeSingle()
+
+    if (!data) {
+      isUnique = true
+    } else {
+      counter++
+      uniqueSlug = `${slug}${separator}${counter}`
+    }
+  }
+
+  return uniqueSlug
+}
+
+/**
+ * Validates if a string is a valid slug
+ */
+export function isValidSlug(slug: string): boolean {
+  const slugRegex = /^[a-z0-9\u0600-\u06FF]+(?:-[a-z0-9\u0600-\u06FF]+)*$/
+  return slugRegex.test(slug)
 }

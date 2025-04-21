@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/app-server"
 
 interface EmailSettings {
   smtp_host: string | null

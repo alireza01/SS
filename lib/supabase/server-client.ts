@@ -1,21 +1,19 @@
 import { cookies } from "next/headers"
-import type { NextRequest } from "next/server"
-import { NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
+import { createServerClient as createClient } from "@supabase/ssr"
 import type { CookieOptions } from "@supabase/ssr"
-
-import { SUPABASE_URL, SUPABASE_ANON_KEY, DEFAULT_COOKIE_OPTIONS } from "./config"
-import type { Database } from "./config"
+import type { Database } from "@/types/supabase"
+import type { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies"
 
 /**
- * Creates a Supabase client for middleware with proper cookie handling
+ * Creates a Supabase client for App Router server components
+ * @returns Typed Supabase client instance
  */
-export function createMiddlewareClient(request: NextRequest) {
+export function createServerClient() {
   const cookieStore = cookies()
 
-  const supabase = createServerClient<Database>(
-    SUPABASE_URL!,
-    SUPABASE_ANON_KEY!,
+  return createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         get(name: string) {
@@ -24,10 +22,9 @@ export function createMiddlewareClient(request: NextRequest) {
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({
-              name,
               value,
-              ...DEFAULT_COOKIE_OPTIONS,
-              ...options,
+              ...options as Omit<ResponseCookie, "value">,
+              name,
             })
           } catch (error) {
             console.warn("Failed to set cookie in middleware:", error)
@@ -36,11 +33,10 @@ export function createMiddlewareClient(request: NextRequest) {
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({
-              name,
               value: "",
-              ...DEFAULT_COOKIE_OPTIONS,
-              ...options,
               maxAge: 0,
+              ...options as Omit<ResponseCookie, "value">,
+              name,
             })
           } catch (error) {
             console.warn("Failed to remove cookie in middleware:", error)
@@ -49,6 +45,4 @@ export function createMiddlewareClient(request: NextRequest) {
       },
     }
   )
-
-  return { supabase, response: NextResponse.next() }
 } 

@@ -39,6 +39,19 @@ export async function generateMetadata({ params }: BookPageProps): Promise<Metad
   }
 }
 
+export async function generateStaticParams() {
+  const supabase = createServerClient()
+  
+  const { data: books } = await supabase
+    .from("books")
+    .select("slug")
+    .eq("isActive", true)
+  
+  return books?.map((book) => ({
+    slug: book.slug,
+  })) || []
+}
+
 export default async function BookPage({ params }: BookPageProps) {
   const supabase = createServerClient()
 

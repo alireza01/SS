@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { ReviewClient } from "@/components/review/review-client"
-import { createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/app-server"
 
 export default async function ReviewPage() {
   const supabase = createServerClient()

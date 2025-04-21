@@ -35,6 +35,7 @@ interface Book {
   categories: {
     name: string
   } | null
+  slug: string
 }
 
 interface UserProgress {
@@ -147,7 +148,7 @@ export function BookDetails({ book, userProgress, relatedBooks, isLoggedIn }: Bo
   // شروع مطالعه کتاب
   const startReading = async () => {
     if (!isLoggedIn) {
-      router.push(`/auth/login?redirect=/books/${book.id}`)
+      router.push(`/auth/login?redirect=/books/${book.slug}`)
       return
     }
 
@@ -159,7 +160,7 @@ export function BookDetails({ book, userProgress, relatedBooks, isLoggedIn }: Bo
         // در یک پروژه واقعی، بررسی می‌شود که آیا کاربر کتاب را خریداری کرده است یا خیر
         const { data: userData } = await supabase.auth.getUser()
         if (!userData.user) {
-          router.push(`/auth/login?redirect=/books/${book.id}`)
+          router.push(`/auth/login?redirect=/books/${book.slug}`)
           return
         }
 
@@ -171,17 +172,17 @@ export function BookDetails({ book, userProgress, relatedBooks, isLoggedIn }: Bo
           .maybeSingle()
 
         if (!purchase) {
-          router.push(`/books/${book.id}/purchase`)
+          router.push(`/books/${book.slug}/purchase`)
           return
         }
       }
 
       // اگر کاربر قبلاً کتاب را مطالعه کرده، از همان صفحه ادامه می‌دهد
       if (userProgress) {
-        router.push(`/books/${book.id}/read?page=${userProgress.currentPage}`)
+        router.push(`/books/${book.slug}/read?page=${userProgress.currentPage}`)
       } else {
         // در غیر این صورت، از صفحه اول شروع می‌کند
-        router.push(`/books/${book.id}/read?page=1`)
+        router.push(`/books/${book.slug}/read?page=1`)
       }
     } catch (error) {
       console.error("خطا در شروع مطالعه:", error)
@@ -193,7 +194,7 @@ export function BookDetails({ book, userProgress, relatedBooks, isLoggedIn }: Bo
 
   // مشاهده پیش‌نمایش کتاب
   const previewBook = () => {
-    router.push(`/books/${book.id}/read?page=1&preview=true`)
+    router.push(`/books/${book.slug}/read?page=1&preview=true`)
   }
 
   // نشانک‌گذاری کتاب
@@ -518,7 +519,7 @@ export function BookDetails({ book, userProgress, relatedBooks, isLoggedIn }: Bo
 
                 {book.isPremium && (
                   <Button variant="outline" className="w-full justify-start" asChild>
-                    <Link href={`/books/${book.id}/purchase`}>
+                    <Link href={`/books/${book.slug}/purchase`}>
                       <Crown className="mr-2 size-4" />
                       خرید کتاب
                     </Link>

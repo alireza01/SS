@@ -1,7 +1,7 @@
 import { BookOpen, Users, BookText, TrendingUp } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/app-server"
 
 export default async function AdminDashboard() {
   const supabase = createServerClient()

@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/app-server"
 import { redirect } from "next/navigation"
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form"
 import { Metadata } from "next"
