@@ -1,18 +1,16 @@
 "use client"
 
-import * as React from "react"
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Volume2, ArrowLeft, ArrowRight, Check, X } from 'lucide-react'
+import { toast } from 'sonner'
 
-import { motion, AnimatePresence } from "framer-motion"
-import { Volume2, ArrowLeft, ArrowRight, Check, X } from "lucide-react"
-import { toast } from "sonner"
-
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { createClient } from "@/lib/supabase/client"
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { createClient } from '@/lib/supabase/client'
 
 interface Word {
   id: string
@@ -20,9 +18,9 @@ interface Word {
   meaning: string
   explanation?: string
   example?: string
-  status: "learning" | "reviewing" | "mastered"
+  status: 'learning' | 'reviewing' | 'mastered'
   next_review_at: string
-  level: "beginner" | "intermediate" | "advanced"
+  level: 'beginner' | 'intermediate' | 'advanced'
   review_count: number
   book_id?: string
   book_title?: string
@@ -31,9 +29,11 @@ interface Word {
 interface AdvancedFlashcardSystemProps {
   words: Word[]
   userLevel: string
+  onComplete: () => void
+  onUpdateStatus: (wordId: string, newStatus: Word['status']) => void
 }
 
-export function AdvancedFlashcardSystem({ words, userLevel }: AdvancedFlashcardSystemProps) {
+export function AdvancedFlashcardSystem({ words, userLevel, onComplete, onUpdateStatus }: AdvancedFlashcardSystemProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
   const [shuffledWords, setShuffledWords] = useState<Word[]>([])
@@ -45,7 +45,11 @@ export function AdvancedFlashcardSystem({ words, userLevel }: AdvancedFlashcardS
   })
   const [reviewMode, setReviewMode] = useState<"all" | "due" | "difficult" | "new">("due")
   const [progress, setProgress] = useState(0)
+  const [confidence, setConfidence] = useState<'low' | 'medium' | 'high' | null>(null)
   const supabase = createClient()
+
+  const currentWord = shuffledWords[currentIndex]
+  const isLastCard = currentIndex === shuffledWords.length - 1
 
   // Filter words based on review mode and user level
   useEffect(() => {
@@ -93,6 +97,7 @@ export function AdvancedFlashcardSystem({ words, userLevel }: AdvancedFlashcardS
       incorrect: 0,
       total: 0,
     })
+    setConfidence(null)
     toast.success("جلسه مرور واژگان آغاز شد")
   }
 
@@ -115,6 +120,7 @@ export function AdvancedFlashcardSystem({ words, userLevel }: AdvancedFlashcardS
 
       setStudySession(false)
       toast.success("جلسه مرور واژگان با موفقیت به پایان رسید")
+      onComplete()
     } catch (error) {
       console.error("خطا در ثبت جلسه مرور واژگان:", error)
       setStudySession(false)
@@ -125,7 +131,6 @@ export function AdvancedFlashcardSystem({ words, userLevel }: AdvancedFlashcardS
   // Handle correct answer
   const handleCorrectAnswer = async () => {
     try {
-      const currentWord = shuffledWords[currentIndex]
       const reviewCount = (currentWord.review_count || 0) + 1
       
       // Calculate next review date using spaced repetition
@@ -134,7 +139,7 @@ export function AdvancedFlashcardSystem({ words, userLevel }: AdvancedFlashcardS
       nextReviewDate.setDate(nextReviewDate.getDate() + nextReviewDays)
 
       // Update word status
-      const newStatus = currentWord.status === "learning" ? "reviewing" : "mastered"
+      const newStatus = currentWord.status === 'learning' ? 'reviewing' : 'mastered'
 
       const { error } = await supabase
         .from("user_words")
@@ -154,6 +159,7 @@ export function AdvancedFlashcardSystem({ words, userLevel }: AdvancedFlashcardS
       })
 
       toast.success("پاسخ درست! وضعیت کلمه ارتقا یافت")
+      onUpdateStatus(currentWord.id, newStatus)
       goToNextCard()
     } catch (error) {
       console.error("خطا در به‌روزرسانی وضعیت کلمه:", error)
@@ -164,12 +170,10 @@ export function AdvancedFlashcardSystem({ words, userLevel }: AdvancedFlashcardS
   // Handle incorrect answer
   const handleIncorrectAnswer = async () => {
     try {
-      const currentWord = shuffledWords[currentIndex]
-
       const { error } = await supabase
         .from("user_words")
         .update({
-          status: "learning",
+          status: 'learning',
           next_review_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
           review_count: (currentWord.review_count || 0) + 1,
         })
@@ -184,6 +188,7 @@ export function AdvancedFlashcardSystem({ words, userLevel }: AdvancedFlashcardS
       })
 
       toast.error("پاسخ نادرست! کلمه به وضعیت یادگیری بازگشت")
+      onUpdateStatus(currentWord.id, 'learning')
       goToNextCard()
     } catch (error) {
       console.error("خطا در به‌روزرسانی وضعیت کلمه:", error)
@@ -196,6 +201,7 @@ export function AdvancedFlashcardSystem({ words, userLevel }: AdvancedFlashcardS
     if (currentIndex < shuffledWords.length - 1) {
       setCurrentIndex(currentIndex + 1)
       setIsFlipped(false)
+      setConfidence(null)
     } else {
       endStudySession()
     }
@@ -205,18 +211,25 @@ export function AdvancedFlashcardSystem({ words, userLevel }: AdvancedFlashcardS
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1)
       setIsFlipped(false)
+      setConfidence(null)
     }
   }
 
   // Play pronunciation
-  const playPronunciation = (word: string) => {
-    if ("speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(word)
-      utterance.lang = "en-US"
+  const playPronunciation = () => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(currentWord.word)
+      utterance.lang = 'en-US'
       window.speechSynthesis.speak(utterance)
     } else {
-      toast.error("مرورگر شما از قابلیت تلفظ پشتیبانی نمی‌کند")
+      toast.error('مرورگر شما از قابلیت تلفظ پشتیبانی نمی‌کند')
     }
+  }
+
+  const handleConfidenceSelect = (level: 'low' | 'medium' | 'high') => {
+    setConfidence(level)
+    const newStatus = level === 'high' ? 'mastered' : level === 'medium' ? 'reviewing' : 'learning'
+    onUpdateStatus(currentWord.id, newStatus)
   }
 
   // Render functions
@@ -267,15 +280,13 @@ export function AdvancedFlashcardSystem({ words, userLevel }: AdvancedFlashcardS
     )
   }
 
-  const currentWord = shuffledWords[currentIndex]
-
   return (
     <Card>
       <CardContent className="p-6">
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="icon" onClick={() => playPronunciation(currentWord.word)}>
+              <Button variant="outline" size="icon" onClick={() => playPronunciation()}>
                 <Volume2 className="size-4" />
               </Button>
               <div className="text-muted-foreground text-sm">
@@ -359,6 +370,42 @@ export function AdvancedFlashcardSystem({ words, userLevel }: AdvancedFlashcardS
               <ArrowRight className="size-4" />
             </Button>
           </div>
+
+          {studySession && !confidence && (
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                onClick={() => handleConfidenceSelect('low')}
+                className="bg-red-50 hover:bg-red-100 text-red-700"
+              >
+                Need More Practice
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleConfidenceSelect('medium')}
+                className="bg-yellow-50 hover:bg-yellow-100 text-yellow-700"
+              >
+                Almost Got It
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleConfidenceSelect('high')}
+                className="bg-green-50 hover:bg-green-100 text-green-700"
+              >
+                Got It!
+              </Button>
+            </div>
+          )}
+
+          {confidence && (
+            <Button
+              variant="outline"
+              onClick={endStudySession}
+              disabled={currentIndex !== shuffledWords.length - 1}
+            >
+              {isLastCard ? 'Finish' : 'Next'}
+            </Button>
+          )}
 
           {studySession && (
             <div className="text-muted-foreground flex justify-between text-sm">
