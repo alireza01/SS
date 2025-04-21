@@ -5,11 +5,12 @@ import { Word } from '@/types/vocabulary';
 
 interface WordsListProps {
   words: Word[];
+  bookId: string;
   onWordSelect?: (word: Word) => void;
   className?: string;
 }
 
-export const WordsList: React.FC<WordsListProps> = ({ words, onWordSelect, className = '' }) => {
+export const WordsList: React.FC<WordsListProps> = ({ words, bookId, onWordSelect, className = '' }) => {
   if (!words || words.length === 0) {
     return <div className="text-gray-500">No words available</div>;
   }

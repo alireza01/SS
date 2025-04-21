@@ -6,13 +6,13 @@ import { createServerClient } from "@/lib/supabase/server"
 
 interface WordsPageProps {
   params: {
-    id: string
+    slug: string
   }
 }
 
 export default async function WordsPage({ params }: WordsPageProps) {
-  const { id: bookId } = params
-  const supabase = createServerClient()
+  const { slug } = params
+  const supabase = await createServerClient()
 
   // بررسی احراز هویت کاربر
   const {
@@ -24,7 +24,11 @@ export default async function WordsPage({ params }: WordsPageProps) {
   }
 
   // دریافت اطلاعات کتاب
-  const { data: book } = await supabase.from("books").select("title, author").eq("id", bookId).single()
+  const { data: book } = await supabase
+    .from("books")
+    .select("id, title, author")
+    .eq("slug", slug)
+    .single()
 
   if (!book) {
     redirect("/admin-secure-dashboard-xyz123/books")
@@ -34,7 +38,7 @@ export default async function WordsPage({ params }: WordsPageProps) {
   const { data: words } = await supabase
     .from("book_words")
     .select("*")
-    .eq("bookId", bookId)
+    .eq("bookId", book.id)
     .order("createdAt", { ascending: false })
 
   return (
@@ -50,11 +54,11 @@ export default async function WordsPage({ params }: WordsPageProps) {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
-          <WordDefinitionGenerator bookId={bookId} />
+          <WordDefinitionGenerator bookId={book.id} />
         </div>
 
         <div>
-          <WordsList words={words || []} bookId={bookId} />
+          <WordsList words={words || []} bookId={book.id} />
         </div>
       </div>
     </div>
