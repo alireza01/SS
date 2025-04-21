@@ -9,33 +9,16 @@ import { PopularCategories } from "@/components/home/popular-categories"
 import { TestimonialSection } from "@/components/home/testimonial-section"
 import { TrendingBooks } from "@/components/home/trending-books"
 import { Button } from "@/components/ui/button"
-import { createServerClient } from "@/lib/supabase/app-server"
 
 export default async function Home() {
-  const supabase = createServerClient()
-
-  // دریافت کتاب‌های پرطرفدار
-  const { data: trendingBooks } = await supabase
-    .from("books")
-    .select("id, title, author, coverImage, level, isPremium")
-    .order("readCount", { ascending: false })
-    .limit(6)
-
-  // دریافت دسته‌بندی‌های محبوب
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("id, name, slug, bookCount")
-    .order("bookCount", { ascending: false })
-    .limit(8)
-
   return (
     <main>
       <HeroSection />
       <FeaturesSection />
-      <TrendingBooks books={trendingBooks || []} />
+      <TrendingBooks />
       <HowItWorks />
       <TestimonialSection />
-      <PopularCategories categories={categories || []} />
+      <PopularCategories />
       <AppFeatures />
       <DownloadApp />
 

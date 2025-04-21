@@ -107,15 +107,26 @@
     --gold-900: 43 95% 92%;
     --gold-950: 43 100% 96%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
+  
+  html {
+    direction: rtl;
+    text-align: right;
+  }
+  
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background text-foreground font-vazirmatn;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, "rlig" 1, "calt" 1;
+  }
+
+  /* Add Persian number support */
+  .persian-numbers {
+    -moz-font-feature-settings: "ss01";
+    -webkit-font-feature-settings: "ss01";
+    font-feature-settings: "ss01";
   }
 }
 

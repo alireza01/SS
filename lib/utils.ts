@@ -189,7 +189,7 @@ export async function generateUniqueSlug(
   }
 
   // Check uniqueness in database
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   let isUnique = false
   let counter = 0
   let uniqueSlug = slug

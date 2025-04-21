@@ -87,6 +87,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['var(--font-inter)'],
+        vazirmatn: ['var(--font-vazirmatn)', 'sans-serif'],
       },
       keyframes: {
         "accordion-down": {
@@ -104,7 +105,10 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require('@tailwindcss/typography'),
+  ],
 } satisfies Config
 
 export default config

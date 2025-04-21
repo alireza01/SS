@@ -20,11 +20,14 @@ import "./globals.css"
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
 })
 
 const vazirmatn = Vazirmatn({
   subsets: ["arabic"],
   variable: "--font-vazirmatn",
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
 })
 
 export const metadata: Metadata = {
@@ -49,11 +52,6 @@ export const metadata: Metadata = {
     title: "کتاب‌یار - پلتفرم مطالعه آنلاین",
     description: "پلتفرم مطالعه آنلاین با امکانات پیشرفته برای یادگیری زبان انگلیسی",
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
   robots: {
     index: true,
     follow: true,
@@ -74,6 +72,12 @@ export const metadata: Metadata = {
   generator: "کتاب‌یار"
 }
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -81,9 +85,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
-      <body className={`${inter.variable} ${vazirmatn.variable} min-h-screen font-sans antialiased`}>
+      <body className={`${inter.variable} ${vazirmatn.variable} font-vazirmatn text-right min-h-screen antialiased`}>
         <ErrorBoundary>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          <ThemeProvider 
+            attribute="class" 
+            defaultTheme="light" 
+            enableSystem
+          >
             <QueryProvider>
               <LoadingProvider>
                 <AnalyticsProvider>
@@ -93,7 +101,7 @@ export default function RootLayout({
                       <main className="flex-1">{children}</main>
                       <SiteFooter />
                     </div>
-                    <Toaster position="bottom-center" />
+                    <Toaster position="bottom-left" />
                   </AuthProvider>
                 </AnalyticsProvider>
               </LoadingProvider>

@@ -1,10 +1,8 @@
 /**
- * @deprecated Use specific clients instead:
- * - For App Router (app/): import { createAppClient } from './app-client'
- * - For Pages Router (pages/): import { createPagesClient } from './pages-client'
+ * Server-side Supabase client exports and types
+ * For use in server components and API routes
  */
-export { createAppClient as createServerClient } from "./app-client"
-export { createPagesClient } from "./pages-client"
+export { createServerClient } from "./server-client"
 
 // Export types
 export type { Database } from "@/types/supabase" 

@@ -1,6 +1,8 @@
+"use client"
+
 import { createBrowserClient } from "@supabase/ssr"
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config"
-import type { Database } from "./config"
+import type { Database } from "@/types/supabase"
 
 /**
  * Creates a Supabase client for client-side (browser) usage
