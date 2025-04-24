@@ -58,26 +58,22 @@ export function DownloadApp() {
               امکانات پیشرفته مطالعه، پشتیبانی از حالت آفلاین و همگام‌سازی خودکار پیشرفت مطالعه.
             </p>
 
-            <div className="mb-8 flex flex-wrap gap-4">
-              <Button asChild size="lg" className="rounded-xl">
-                <a href="#" target="_blank" rel="noopener noreferrer">
-                  <Image
-                    src="/images/google-play-badge.png"
-                    alt="دریافت از گوگل پلی"
-                    width={135}
-                    height={40}
-                  />
-                </a>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Button
+                variant="outline"
+                className="flex items-center gap-2"
+                onClick={() => window.open('https://play.google.com/store/apps/details?id=com.yourapp', '_blank')}
+              >
+                <Image src="/images/google-play.svg" alt="Google Play" width={24} height={24} />
+                دانلود از گوگل پلی
               </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-xl">
-                <a href="#" target="_blank" rel="noopener noreferrer">
-                  <Image
-                    src="/images/app-store-badge.png"
-                    alt="دریافت از اپ استور"
-                    width={120}
-                    height={40}
-                  />
-                </a>
+              <Button
+                variant="outline"
+                className="flex items-center gap-2"
+                onClick={() => window.open('https://apps.apple.com/app/your-app/id123456789', '_blank')}
+              >
+                <Image src="/images/app-store.svg" alt="App Store" width={24} height={24} />
+                دانلود از اپ استور
               </Button>
             </div>
 

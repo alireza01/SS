@@ -1,20 +1,17 @@
 "use client"
 
-import React from "react"
-import { useState } from "react"
+import React, { useState, type ReactElement } from 'react'
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import { AuthError } from "@supabase/supabase-js"
 import { motion } from "framer-motion"
-import { AlertCircle } from "lucide-react"
-import { BookOpen } from "lucide-react"
-import { useForm } from "react-hook-form"
+import { AlertCircle, BookOpen } from "lucide-react"
+import { useForm, type SubmitHandler } from "react-hook-form"
 import { toast } from "sonner"
 import * as z from "zod"
-
-
 
 import { useSupabaseAuth } from "@/components/providers/auth-provider"
 import { Button } from "@/components/ui/button"
@@ -41,17 +38,20 @@ const formSchema = z.object({
   path: ["confirmPassword"],
 })
 
+type FormData = z.infer<typeof formSchema>
+
 interface RegisterFormProps {
   redirectUrl?: string
 }
 
-const RegisterForm = ({ redirectUrl = '/auth/verify-email' }: RegisterFormProps) => {
+const RegisterForm = ({ redirectUrl = '/auth/verify-email' }: RegisterFormProps): ReactElement => {
   const router = useRouter()
-  const { signUp, signInWithGoogle, isLoading: authLoading } = useSupabaseAuth()
+  const { signUp, signInWithGoogle } = useSupabaseAuth()
   const supabase = createClient()
+  const [isLoading, setIsLoading] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       firstName: '',
@@ -64,18 +64,18 @@ const RegisterForm = ({ redirectUrl = '/auth/verify-email' }: RegisterFormProps)
     },
   })
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    setFormError(null)
-
-    if (!data.acceptTerms) {
-      setFormError('You must accept the terms and conditions')
-      return
-    }
-
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
+      setIsLoading(true)
+      setFormError(null)
+
+      if (!data.acceptTerms) {
+        setFormError('You must accept the terms and conditions')
+        return
+      }
+
       await signUp(data.email, data.password)
 
-      // Track registration event with user level
       event({
         action: 'register',
         category: 'authentication',
@@ -84,19 +84,26 @@ const RegisterForm = ({ redirectUrl = '/auth/verify-email' }: RegisterFormProps)
 
       toast.success("Registration successful! Please check your email to verify your account.")
       router.push(redirectUrl)
-    } catch (error: any) {
-      console.error("Registration error:", error)
-      const errorMessage = error.message || "Something went wrong. Please try again."
+    } catch (error) {
+      const errorMessage = error instanceof AuthError 
+        ? error.message 
+        : "An unexpected error occurred during registration"
+      
       setFormError(errorMessage)
       toast.error(errorMessage)
+      console.error("Registration error:", error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const handleGoogleRegister = async () => {
+  const handleGoogleRegister = async (): Promise<void> => {
     try {
+      setIsLoading(true)
+      setFormError(null)
+      
       await signInWithGoogle()
 
-      // Track Google registration
       event({
         action: 'register',
         category: 'authentication',
@@ -105,29 +112,33 @@ const RegisterForm = ({ redirectUrl = '/auth/verify-email' }: RegisterFormProps)
 
       toast.success("Registration with Google successful!")
       router.push(redirectUrl)
-    } catch (error: any) {
-      console.error("Google registration error:", error)
-      const errorMessage = error.message || "Error signing in with Google"
+    } catch (error) {
+      const errorMessage = error instanceof AuthError 
+        ? error.message 
+        : "An unexpected error occurred during Google registration"
+      
       setFormError(errorMessage)
       toast.error(errorMessage)
+      console.error("Google registration error:", error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
     <div className="container mx-auto max-w-md px-4 py-12">
       <div className="mb-8 flex justify-center">
-        \
         <div className="bg-gold-100 dark:bg-gold-900/30 text-gold-600 dark:text-gold-400 flex size-12 items-center justify-center rounded-full">
-          <BookOpen className="size-6" />
+          <BookOpen className="size-6" aria-hidden="true" />
         </div>
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <Card>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-center text-2xl font-bold">ایجاد حساب کاربری</CardTitle>
+            <CardTitle className="text-center text-2xl font-bold">Create an Account</CardTitle>
             <CardDescription className="text-center">
-              برای استفاده از امکانات کتاب‌یار یک حساب کاربری ایجاد کنید
+              Create an account to access all features
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -155,7 +166,12 @@ const RegisterForm = ({ redirectUrl = '/auth/verify-email' }: RegisterFormProps)
                       <FormItem>
                         <FormLabel>First Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="First name" {...field} disabled={authLoading} />
+                          <Input 
+                            placeholder="First name" 
+                            {...field} 
+                            disabled={isLoading}
+                            aria-label="First name"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -169,7 +185,12 @@ const RegisterForm = ({ redirectUrl = '/auth/verify-email' }: RegisterFormProps)
                       <FormItem>
                         <FormLabel>Last Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Last name" {...field} disabled={authLoading} />
+                          <Input 
+                            placeholder="Last name" 
+                            {...field} 
+                            disabled={isLoading}
+                            aria-label="Last name"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -184,7 +205,13 @@ const RegisterForm = ({ redirectUrl = '/auth/verify-email' }: RegisterFormProps)
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="example@example.com" {...field} type="email" disabled={authLoading} />
+                        <Input 
+                          placeholder="example@example.com" 
+                          {...field} 
+                          type="email" 
+                          disabled={isLoading}
+                          aria-label="Email address"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -198,7 +225,13 @@ const RegisterForm = ({ redirectUrl = '/auth/verify-email' }: RegisterFormProps)
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input placeholder="********" {...field} type="password" disabled={authLoading} />
+                        <Input 
+                          placeholder="********" 
+                          {...field} 
+                          type="password" 
+                          disabled={isLoading}
+                          aria-label="Password"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -212,7 +245,13 @@ const RegisterForm = ({ redirectUrl = '/auth/verify-email' }: RegisterFormProps)
                     <FormItem>
                       <FormLabel>Confirm Password</FormLabel>
                       <FormControl>
-                        <Input placeholder="********" {...field} type="password" disabled={authLoading} />
+                        <Input 
+                          placeholder="********" 
+                          {...field} 
+                          type="password" 
+                          disabled={isLoading}
+                          aria-label="Confirm password"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -225,9 +264,13 @@ const RegisterForm = ({ redirectUrl = '/auth/verify-email' }: RegisterFormProps)
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>English Level</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                        disabled={isLoading}
+                      >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger aria-label="Select your English level">
                             <SelectValue placeholder="Select your level" />
                           </SelectTrigger>
                         </FormControl>
@@ -251,6 +294,8 @@ const RegisterForm = ({ redirectUrl = '/auth/verify-email' }: RegisterFormProps)
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          disabled={isLoading}
+                          aria-label="Accept terms and conditions"
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
@@ -260,13 +305,19 @@ const RegisterForm = ({ redirectUrl = '/auth/verify-email' }: RegisterFormProps)
                             terms and conditions
                           </Link>
                         </FormLabel>
+                        <FormMessage />
                       </div>
                     </FormItem>
                   )}
                 />
 
-                <Button type="submit" className="w-full" disabled={authLoading}>
-                  {authLoading ? 'Creating account...' : 'Create account'}
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={isLoading}
+                  aria-label={isLoading ? "Creating account..." : "Create account"}
+                >
+                  {isLoading ? "Creating account..." : "Create account"}
                 </Button>
               </form>
             </Form>
@@ -281,11 +332,12 @@ const RegisterForm = ({ redirectUrl = '/auth/verify-email' }: RegisterFormProps)
             </div>
 
             <Button
-              variant="outline"
               type="button"
-              className="w-full"
+              variant="outline"
               onClick={handleGoogleRegister}
-              disabled={authLoading}
+              disabled={isLoading}
+              className="w-full"
+              aria-label="Continue with Google"
             >
               <svg
                 className="mr-2 size-4"
@@ -302,14 +354,14 @@ const RegisterForm = ({ redirectUrl = '/auth/verify-email' }: RegisterFormProps)
                   d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"
                 ></path>
               </svg>
-              Sign up with Google
+              Continue with Google
             </Button>
           </CardContent>
           <CardFooter className="text-center">
             <p className="text-muted-foreground text-sm">
-              قبلاً حساب کاربری دارید؟{" "}
+              Already have an account?{" "}
               <Link href="/auth/login" className="text-primary hover:underline">
-                ورود
+                Sign in
               </Link>
             </p>
           </CardFooter>

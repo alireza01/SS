@@ -168,7 +168,7 @@ export function BookReaderWithFlip({
 
   return (
     <div className="container mx-auto py-4">
-      <style jsx global>{`
+      <style>{`
         .interactive-word {
           cursor: pointer;
           transition: background-color 0.2s ease;

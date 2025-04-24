@@ -1,7 +1,6 @@
 "use client"
 
-import React from "react"
-import { useState, useEffect, createContext, useContext } from "react"
+import { createContext, useContext, useEffect, useState } from "react"
 
 import { useRouter } from "next/navigation"
 
@@ -17,7 +16,7 @@ interface AuthContextType {
   isLoading: boolean
   error: Error | null
   signUp: (email: string, password: string) => Promise<void>
-  signIn: (email: string, password: string) => Promise<void>
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
@@ -112,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
       })
       if (error) {
-        throw error
+        return { error }
       }
 
       // Track signin event
@@ -122,10 +121,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         label: "email",
       })
 
-      router.push("/dashboard")
+      return { error: null }
     } catch (error) {
       console.error("Error signing in:", error)
-      throw error
+      return { error: error instanceof Error ? error : new Error("Unknown error occurred") }
     } finally {
       setIsLoading(false)
     }

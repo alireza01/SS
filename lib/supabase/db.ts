@@ -2,9 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 
 import { handleError, AuthenticationError } from '@/lib/utils/error-handling'
 
-import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from './config'
-
-import type { Database } from './config'
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, type Database } from './config'
 
 // Client with anonymous key for public operations
 export const supabase = createClient<Database>(SUPABASE_URL!, SUPABASE_ANON_KEY!)

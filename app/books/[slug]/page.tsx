@@ -51,7 +51,7 @@ interface SupabaseRelatedBook {
   slug: string;
 }
 
-interface BookAuthor {
+interface _BookAuthor {
   id: string
   name: string
   bio: string | null
@@ -65,7 +65,7 @@ interface SupabaseBookCategory {
   };
 }
 
-interface BookCategory {
+interface _BookCategory {
   id: string
   name: string
   slug: string
@@ -78,7 +78,7 @@ interface BookDetailsProps {
   isLoggedIn: boolean
 }
 
-interface BookAuthorResponse {
+interface _BookAuthorResponse {
   name: string | null
 }
 

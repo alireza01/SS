@@ -20,7 +20,7 @@ import type { Database } from "@/types/supabase"
 
 const ITEMS_PER_PAGE = 10
 
-type Word = Database["public"]["Tables"]["vocabulary"]["Row"]
+type _Word = Database["public"]["Tables"]["vocabulary"]["Row"]
 
 export default function WordsManagement() {
   const [searchQuery, setSearchQuery] = useState("")

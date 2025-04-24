@@ -5,13 +5,11 @@ import * as React from "react"
 import Link from "next/link"
 
 import { motion } from "framer-motion"
-import { Book, Brain, Beaker, User2, Clock, Briefcase } from "lucide-react"
+import { Book, Brain, Beaker, User2, Clock, Briefcase, type LucideIcon } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { createClient } from "@/lib/supabase/client"
-
-import type { LucideIcon} from "lucide-react";
 
 interface Category {
   id: string

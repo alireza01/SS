@@ -7,8 +7,7 @@ import { useRouter } from "next/navigation"
 import { BookOpen, UserIcon, Settings, LogOut } from "lucide-react"
 import { toast } from "sonner"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,

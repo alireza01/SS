@@ -1,5 +1,4 @@
 import type * as React from 'react'
-import 'react'
 
 declare global {
   namespace JSX {

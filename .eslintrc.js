@@ -188,6 +188,7 @@ module.exports = {
           "slide-in-from-left-2",
           "perspective-1000",
           "origin-top-center",
+          "font-vazirmatn",
           "data-\\[.*\\].*",
           "bg-.*",
           "text-.*",

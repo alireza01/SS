@@ -1,8 +1,8 @@
 "use client"
 
-import React from "react"
 import { useState } from "react"
 
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 
 import { format } from "date-fns-jalali"
@@ -329,10 +329,11 @@ export function EditBookForm({ book, categories }: EditBookFormProps) {
                   {coverPreview ? (
                     <div className="flex flex-col items-center">
                       <div className="relative mb-4 h-56 w-40">
-                        <img
+                        <Image
                           src={coverPreview || "/placeholder.svg"}
                           alt="پیش‌نمایش جلد"
-                          className="size-full rounded-md object-cover"
+                          fill
+                          className="rounded-md object-cover"
                         />
                       </div>
                       <div className="flex gap-2">
@@ -356,6 +357,25 @@ export function EditBookForm({ book, categories }: EditBookFormProps) {
                           حذف تصویر
                         </Button>
                       </div>
+                    </div>
+                  ) : book.coverImage ? (
+                    <div className="flex flex-col items-center">
+                      <div className="relative mb-4 h-56 w-40">
+                        <Image
+                          src={book.coverImage || "/placeholder.svg"}
+                          alt="تصویر جلد فعلی"
+                          fill
+                          className="rounded-md object-cover"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => document.getElementById("cover")?.click()}
+                      >
+                        تغییر تصویر
+                      </Button>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center">

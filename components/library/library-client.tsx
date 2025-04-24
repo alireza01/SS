@@ -1,39 +1,46 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useEffect, useState, useRef } from "react"
 
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { Search, BookOpen, Filter, X, ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Search, SlidersHorizontal, BookOpen, X } from "lucide-react"
 
 import { BookCard } from "@/components/library/book-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetClose,
 } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { createClient } from "@/lib/supabase/client"
+
+type SortOption = "newest" | "oldest" | "title" | "author"
+type Level = "all" | "beginner" | "intermediate" | "advanced"
+type Language = "all" | "en" | "fr" | "de" | "es"
 
 interface Book {
   id: string
   title: string
   author: string
   coverImage: string | null
-  language: string
-  level: string
+  language: Language
+  level: Level
   totalPages: number
   isPremium: boolean
   categoryId: string | null
@@ -68,10 +75,10 @@ export function LibraryClient({ initialBooks, categories, userProgress, isLogged
   const [filteredBooks, setFilteredBooks] = useState<Book[]>(initialBooks)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
-  const [selectedLevel, setSelectedLevel] = useState<string>("all")
-  const [selectedLanguage, setSelectedLanguage] = useState<string>("all")
+  const [selectedLevel, setSelectedLevel] = useState<Level>("all")
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>("all")
   const [selectedType, setSelectedType] = useState<string>("all")
-  const [sortBy, setSortBy] = useState<string>("newest")
+  const [sortBy, setSortBy] = useState<SortOption>("newest")
   const [activeFilters, setActiveFilters] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [isLoading, setIsLoading] = useState(false)
@@ -97,10 +104,10 @@ export function LibraryClient({ initialBooks, categories, userProgress, isLogged
     const bookmarked = searchParams.get("bookmarked") === "true"
 
     setSelectedCategory(category)
-    setSelectedLevel(level)
-    setSelectedLanguage(language)
+    setSelectedLevel(level as Level)
+    setSelectedLanguage(language as Language)
     setSelectedType(type)
-    setSortBy(sort)
+    setSortBy(sort as SortOption)
     setCurrentPage(Number.parseInt(page))
     setSearchQuery(query)
     setShowOnlyReading(reading)
@@ -183,17 +190,11 @@ export function LibraryClient({ initialBooks, categories, userProgress, isLogged
       case "oldest":
         filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
         break
-      case "title_asc":
+      case "title":
         filtered.sort((a, b) => a.title.localeCompare(b.title))
         break
-      case "title_desc":
-        filtered.sort((a, b) => b.title.localeCompare(a.title))
-        break
-      case "author_asc":
+      case "author":
         filtered.sort((a, b) => a.author.localeCompare(b.author))
-        break
-      case "author_desc":
-        filtered.sort((a, b) => b.author.localeCompare(a.author))
         break
       default:
         filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -220,13 +221,15 @@ export function LibraryClient({ initialBooks, categories, userProgress, isLogged
     }
     if (selectedLanguage !== "all") {
       filters.push(
-        selectedLanguage === "english"
+        selectedLanguage === "en"
           ? "انگلیسی"
-          : selectedLanguage === "persian"
-            ? "فارسی"
-            : selectedLanguage === "arabic"
-              ? "عربی"
-              : selectedLanguage,
+          : selectedLanguage === "fr"
+            ? "فرانسوی"
+            : selectedLanguage === "de"
+              ? "آلمانی"
+              : selectedLanguage === "es"
+                ? "اسپانیایی"
+                : selectedLanguage,
       )
     }
     if (selectedType !== "all") {
@@ -367,47 +370,50 @@ export function LibraryClient({ initialBooks, categories, userProgress, isLogged
         <div className="flex items-center gap-2">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
-                <Filter className="size-4" />
+              <Button variant="outline" className="lg:hidden">
+                <SlidersHorizontal className="mr-2 size-4" />
                 فیلترها
-                {activeFilters.length > 0 && (
-                  <Badge variant="secondary" className="ml-1">
-                    {activeFilters.length}
-                  </Badge>
-                )}
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+            <SheetContent side="right">
               <SheetHeader>
-                <SheetTitle>فیلتر کتاب‌ها</SheetTitle>
-                <SheetDescription>کتاب‌ها را بر اساس معیارهای مختلف فیلتر کنید.</SheetDescription>
+                <SheetTitle>فیلترها</SheetTitle>
               </SheetHeader>
-              <div className="space-y-6 py-6">
+              <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">دسته‌بندی</label>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="انتخاب دسته‌بندی" />
+                  <Label htmlFor="mobile-search">جستجو</Label>
+                  <Input
+                    id="mobile-search"
+                    type="search"
+                    placeholder="جستجو در کتاب‌ها..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="mobile-sort">مرتب‌سازی</Label>
+                  <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+                    <SelectTrigger aria-label="مرتب‌سازی">
+                      <SelectValue placeholder="انتخاب مرتب‌سازی" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">همه دسته‌بندی‌ها</SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="newest">جدیدترین</SelectItem>
+                      <SelectItem value="oldest">قدیمی‌ترین</SelectItem>
+                      <SelectItem value="title">عنوان</SelectItem>
+                      <SelectItem value="author">نویسنده</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">سطح</label>
-                  <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                    <SelectTrigger>
+                  <Label htmlFor="mobile-level">سطح</Label>
+                  <Select value={selectedLevel} onValueChange={(value: Level) => setSelectedLevel(value)}>
+                    <SelectTrigger aria-label="سطح">
                       <SelectValue placeholder="انتخاب سطح" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">همه سطوح</SelectItem>
+                      <SelectItem value="all">همه</SelectItem>
                       <SelectItem value="beginner">مبتدی</SelectItem>
                       <SelectItem value="intermediate">متوسط</SelectItem>
                       <SelectItem value="advanced">پیشرفته</SelectItem>
@@ -416,81 +422,19 @@ export function LibraryClient({ initialBooks, categories, userProgress, isLogged
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">زبان</label>
-                  <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                    <SelectTrigger>
+                  <Label htmlFor="mobile-language">زبان</Label>
+                  <Select value={selectedLanguage} onValueChange={(value: Language) => setSelectedLanguage(value)}>
+                    <SelectTrigger aria-label="زبان">
                       <SelectValue placeholder="انتخاب زبان" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">همه زبان‌ها</SelectItem>
-                      <SelectItem value="english">انگلیسی</SelectItem>
-                      <SelectItem value="persian">فارسی</SelectItem>
-                      <SelectItem value="arabic">عربی</SelectItem>
-                      <SelectItem value="french">فرانسوی</SelectItem>
-                      <SelectItem value="german">آلمانی</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">نوع</label>
-                  <Select value={selectedType} onValueChange={setSelectedType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="انتخاب نوع" />
-                    </SelectTrigger>
-                    <SelectContent>
                       <SelectItem value="all">همه</SelectItem>
-                      <SelectItem value="free">رایگان</SelectItem>
-                      <SelectItem value="premium">ویژه</SelectItem>
+                      <SelectItem value="en">انگلیسی</SelectItem>
+                      <SelectItem value="fr">فرانسوی</SelectItem>
+                      <SelectItem value="de">آلمانی</SelectItem>
+                      <SelectItem value="es">اسپانیایی</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">مرتب‌سازی</label>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="انتخاب مرتب‌سازی" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="newest">جدیدترین</SelectItem>
-                      <SelectItem value="oldest">قدیمی‌ترین</SelectItem>
-                      <SelectItem value="title_asc">عنوان (الف تا ی)</SelectItem>
-                      <SelectItem value="title_desc">عنوان (ی تا الف)</SelectItem>
-                      <SelectItem value="author_asc">نویسنده (الف تا ی)</SelectItem>
-                      <SelectItem value="author_desc">نویسنده (ی تا الف)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {isLoggedIn && (
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                      <Checkbox
-                        id="reading"
-                        checked={showOnlyReading}
-                        onCheckedChange={(checked: boolean | "indeterminate") => setShowOnlyReading(checked as boolean)}
-                      />
-                      <Label htmlFor="reading">فقط کتاب‌های در حال مطالعه</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                      <Checkbox
-                        id="bookmarked"
-                        checked={showOnlyBookmarked}
-                        onCheckedChange={(checked: boolean | "indeterminate") => setShowOnlyBookmarked(checked as boolean)}
-                      />
-                      <Label htmlFor="bookmarked">فقط کتاب‌های نشانک‌گذاری شده</Label>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={clearAllFilters}>
-                    پاک کردن فیلترها
-                  </Button>
-                  <SheetClose asChild>
-                    <Button>اعمال فیلترها</Button>
-                  </SheetClose>
                 </div>
               </div>
             </SheetContent>

@@ -1,22 +1,35 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 
 import { BookMarked } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Slider } from "@/components/ui/slider"
 import { cn } from "@/lib/utils"
 
 interface AdvancedProgressBarProps {
   currentPage: number
   totalPages: number
-  bookmarks: number[]
+  bookmarks?: number[]
   onPageSelect: (page: number) => void
 }
 
-export function AdvancedProgressBar({ currentPage, totalPages, bookmarks, onPageSelect }: AdvancedProgressBarProps) {
+export function AdvancedProgressBar({
+  currentPage,
+  totalPages,
+  bookmarks = [],
+  onPageSelect,
+}: AdvancedProgressBarProps) {
   const [showPopover, setShowPopover] = useState(false)
+
+  const handlePageSelect = useCallback(
+    (value: number[]) => {
+      onPageSelect(value[0])
+    },
+    [onPageSelect]
+  )
 
   // تعداد نقاط نمایش داده شده در نوار پیشرفت
   const totalDots = Math.min(totalPages, 20)
@@ -31,36 +44,68 @@ export function AdvancedProgressBar({ currentPage, totalPages, bookmarks, onPage
   const progressPercentage = (currentPage / totalPages) * 100
 
   return (
-    <div className="relative w-full max-w-md">
-      <div className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-        <div
-          className="bg-gold-500 h-full rounded-full transition-all duration-300 ease-in-out"
-          style={{ width: `${progressPercentage}%` }}
+    <div className="relative w-full">
+      <Slider
+        value={[currentPage]}
+        min={1}
+        max={totalPages}
+        step={1}
+        onValueChange={handlePageSelect}
+        className="relative z-10"
+      />
+      {bookmarks.map((page) => (
+        <button
+          key={page}
+          type="button"
+          aria-label={`برو به صفحه ${page}`}
+          className={cn(
+            "bg-gold-500 absolute top-1/2 z-20 size-3 -translate-y-1/2 cursor-pointer rounded-full",
+            "hover:ring-gold-400 focus:ring-gold-400 hover:ring-2 hover:ring-offset-2 focus:outline-none focus:ring-2 focus:ring-offset-2"
+          )}
+          style={{
+            left: `${((page - 1) / (totalPages - 1)) * 100}%`,
+          }}
+          onClick={() => onPageSelect(page)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault()
+              onPageSelect(page)
+            }
+          }}
         />
-      </div>
+      ))}
 
-      <div className="relative mt-1 h-6">
-        {dots.map((page, index) => {
-          const actualPage = Math.min(page, totalPages)
-          const position = (actualPage / totalPages) * 100
-          const isBookmarked = bookmarks.some((b) => Math.abs(b - actualPage) <= pageGap / 2)
+      <div className="relative w-full max-w-md">
+        <div className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+          <div
+            className="bg-gold-500 h-full rounded-full transition-all duration-300 ease-in-out"
+            style={{ width: `${progressPercentage}%` }}
+          />
+        </div>
 
-          return (
-            <div key={index} className="absolute top-0 -translate-x-1/2" style={{ left: `${position}%` }}>
-              {isBookmarked ? (
-                <BookMarked className="text-gold-500 size-4 cursor-pointer" onClick={() => onPageSelect(actualPage)} />
-              ) : (
-                <div
-                  className={cn(
-                    "size-2 cursor-pointer rounded-full",
-                    Math.abs(currentPage - actualPage) <= pageGap / 2 ? "bg-gold-500" : "bg-gray-300 dark:bg-gray-600",
-                  )}
-                  onClick={() => onPageSelect(actualPage)}
-                />
-              )}
-            </div>
-          )
-        })}
+        <div className="relative mt-1 h-6">
+          {dots.map((page, index) => {
+            const actualPage = Math.min(page, totalPages)
+            const position = (actualPage / totalPages) * 100
+            const isBookmarked = bookmarks.some((b) => Math.abs(b - actualPage) <= pageGap / 2)
+
+            return (
+              <div key={index} className="absolute top-0 -translate-x-1/2" style={{ left: `${position}%` }}>
+                {isBookmarked ? (
+                  <BookMarked className="text-gold-500 size-4 cursor-pointer" onClick={() => onPageSelect(actualPage)} />
+                ) : (
+                  <div
+                    className={cn(
+                      "size-2 cursor-pointer rounded-full",
+                      Math.abs(currentPage - actualPage) <= pageGap / 2 ? "bg-gold-500" : "bg-gray-300 dark:bg-gray-600",
+                    )}
+                    onClick={() => onPageSelect(actualPage)}
+                  />
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       <Popover open={showPopover} onOpenChange={setShowPopover}>

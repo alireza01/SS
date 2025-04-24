@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect } from "react"
+import { type FC, useCallback, useEffect, useRef, useState } from "react"
 
 import Highlight from "@tiptap/extension-highlight"
 import Image from "@tiptap/extension-image"
@@ -11,33 +11,53 @@ import Underline from "@tiptap/extension-underline"
 import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import {
-  Bold,
-  Italic,
-  UnderlineIcon,
-  AlignLeft,
   AlignCenter,
+  AlignLeft,
   AlignRight,
+  Bold,
   Heading1,
   Heading2,
   Heading3,
+  Highlighter,
+  ImageIcon,
+  Italic,
   List,
   ListOrdered,
-  ImageIcon,
-  Undo,
-  Redo,
-  Highlighter,
-  Wand2,
   Loader2,
-  Search,
   Plus,
+  Redo,
+  Search,
+  Undo,
+  UnderlineIcon,
+  Wand2,
   X,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { toast } from "@/components/ui/use-toast"
 import { analyzeTextForDifficultWords } from "@/lib/gemini"
 import { createClient } from "@/lib/supabase/client"
@@ -50,6 +70,13 @@ interface DifficultWord {
   position: number
 }
 
+interface WordInfo {
+  word: string
+  level: "beginner" | "intermediate" | "advanced"
+  meaning: string
+  explanation?: string
+}
+
 interface RichTextEditorProps {
   initialContent: string
   onChange: (html: string) => void
@@ -58,26 +85,22 @@ interface RichTextEditorProps {
   readOnly?: boolean
 }
 
-export function RichTextEditor({
+export const RichTextEditor: FC<RichTextEditorProps> = ({
   initialContent,
   onChange,
   onSaveDifficultWords,
   bookId,
   readOnly = false,
-}: RichTextEditorProps) {
+}) => {
   const [difficultWords, setDifficultWords] = useState<DifficultWord[]>([])
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [selectedText, setSelectedText] = useState("")
-  const [selectedWordInfo, setSelectedWordInfo] = useState<{
-    word: string
-    level: "beginner" | "intermediate" | "advanced"
-    meaning: string
-  } | null>(null)
+  const [selectedWordInfo, setSelectedWordInfo] = useState<WordInfo | null>(null)
   const [imageUrl, setImageUrl] = useState("")
   const [isAddingWord, setIsAddingWord] = useState(false)
-  const [newWord, setNewWord] = useState({
+  const [newWord, setNewWord] = useState<WordInfo>({
     word: "",
-    level: "intermediate" as "beginner" | "intermediate" | "advanced",
+    level: "intermediate",
     meaning: "",
   })
 
@@ -253,10 +276,11 @@ export function RichTextEditor({
     const text = editor.state.doc.textBetween(from, to)
 
     if (text && text.trim()) {
-      setSelectedText(text.trim())
+      const trimmedText = text.trim()
+      setSelectedText(trimmedText)
 
-      // بررسی آیا این کلمه قبلاً به عنوان کلمه دشوار ثبت شده است
-      const existingWord = difficultWords.find((w) => w.word === text.trim())
+      // Check if this word is already marked as difficult
+      const existingWord = difficultWords.find((w) => w.word === trimmedText)
 
       if (existingWord) {
         setSelectedWordInfo({
@@ -265,7 +289,11 @@ export function RichTextEditor({
           meaning: existingWord.persianMeaning,
         })
       } else {
-        setSelectedWordInfo(null)
+        setSelectedWordInfo({
+          word: trimmedText,
+          level: "intermediate",
+          meaning: "",
+        })
       }
     }
   }
@@ -397,7 +425,7 @@ export function RichTextEditor({
   }
 
   return (
-    <div className="rich-text-editor">
+    <div className="relative w-full">
       {!readOnly && (
         <div className="editor-toolbar bg-background sticky top-0 z-10 flex flex-wrap gap-1 rounded-t-md border p-2">
           <TooltipProvider>
@@ -586,7 +614,7 @@ export function RichTextEditor({
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" aria-label="افزودن تصویر">
                 <ImageIcon className="size-4" />
               </Button>
             </DialogTrigger>
@@ -596,16 +624,18 @@ export function RichTextEditor({
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">آدرس تصویر</label>
+                  <Label htmlFor="image-url">آدرس تصویر</Label>
                   <Input
+                    id="image-url"
                     placeholder="https://example.com/image.jpg"
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">یا آپلود تصویر</label>
+                  <Label htmlFor="image-upload">یا آپلود تصویر</Label>
                   <Input
+                    id="image-upload"
                     type="file"
                     accept="image/*"
                     ref={imageInputRef}
@@ -662,9 +692,9 @@ export function RichTextEditor({
         </div>
       )}
 
-      <div className="editor-content-wrapper flex">
+      <div className="flex w-full">
         <div
-          className={`editor-content ${readOnly ? "rounded-md border" : "rounded-b-md border-x border-b"} prose prose-sm min-h-[400px] w-full max-w-none p-4`}
+          className={`${readOnly ? "rounded-md border" : "rounded-b-md border-x border-b"} prose prose-sm min-h-[400px] w-full max-w-none p-4`}
         >
           <EditorContent editor={editor} onClick={handleWordClick} />
 
@@ -704,7 +734,7 @@ export function RichTextEditor({
         </div>
 
         {!readOnly && (
-          <div className="difficult-words-panel bg-muted/30 w-80 rounded-br-md border-b border-r p-4">
+          <div className="bg-muted/30 relative w-80 rounded-br-md border-b border-r p-4">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-sm font-medium">کلمات دشوار</h3>
               <div className="flex items-center">
@@ -745,7 +775,12 @@ export function RichTextEditor({
                         </div>
                         <p className="text-muted-foreground mt-1 text-xs">{word.persianMeaning}</p>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => removeDifficultWord(word.word)}>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => removeDifficultWord(word.word)}
+                        aria-label={`حذف کلمه ${word.word}`}
+                      >
                         <X className="size-3" />
                       </Button>
                     </div>
@@ -763,52 +798,74 @@ export function RichTextEditor({
             <DialogTitle>افزودن کلمه دشوار</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">کلمه</label>
-              <Input value={selectedText} onChange={(e) => setSelectedText(e.target.value)} readOnly={!!selectedText} />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">سطح دشواری</label>
-              <div className="flex gap-2">
-                <Button
-                  variant={newWord.level === "beginner" ? "default" : "outline"}
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => setNewWord({ ...newWord, level: "beginner" })}
-                >
-                  مبتدی
-                </Button>
-                <Button
-                  variant={newWord.level === "intermediate" ? "default" : "outline"}
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => setNewWord({ ...newWord, level: "intermediate" })}
-                >
-                  متوسط
-                </Button>
-                <Button
-                  variant={newWord.level === "advanced" ? "default" : "outline"}
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => setNewWord({ ...newWord, level: "advanced" })}
-                >
-                  پیشرفته
-                </Button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">معنی فارسی</label>
+            <div className="flex flex-col space-y-2">
+              <Label htmlFor="word">کلمه</Label>
               <Input
-                value={newWord.meaning}
-                onChange={(e) => setNewWord({ ...newWord, meaning: e.target.value })}
-                placeholder="معنی فارسی کلمه را وارد کنید"
+                id="word"
+                value={selectedWordInfo?.word || ''}
+                onChange={(e) => {
+                  if (selectedWordInfo) {
+                    setSelectedWordInfo({
+                      ...selectedWordInfo,
+                      word: e.target.value
+                    })
+                  } else {
+                    setSelectedWordInfo({
+                      word: e.target.value,
+                      level: "intermediate",
+                      meaning: ""
+                    })
+                  }
+                }}
+                placeholder="کلمه مورد نظر را وارد کنید"
               />
+            </div>
+            <div className="flex flex-col space-y-2">
+              <Label htmlFor="meaning">معنی</Label>
+              <Input
+                id="meaning"
+                value={selectedWordInfo?.meaning ?? ""}
+                onChange={(e) => setSelectedWordInfo(prev => prev ? { ...prev, meaning: e.target.value } : null)}
+                placeholder="معنی کلمه را وارد کنید"
+              />
+            </div>
+            <div className="flex flex-col space-y-2">
+              <Label htmlFor="explanation">توضیحات</Label>
+              <Textarea
+                id="explanation"
+                value={selectedWordInfo?.explanation ?? ""}
+                onChange={(e) => setSelectedWordInfo(prev => prev ? { ...prev, explanation: e.target.value } : null)}
+                placeholder="توضیحات اضافی را وارد کنید"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="difficulty">سطح دشواری</Label>
+              <Select
+                value={selectedWordInfo?.level ?? "intermediate"}
+                onValueChange={(value: "beginner" | "intermediate" | "advanced") => 
+                  setSelectedWordInfo(prev => prev ? 
+                    { ...prev, level: value } : 
+                    { word: selectedText, level: value, meaning: "" }
+                  )}
+              >
+                <SelectTrigger id="difficulty">
+                  <SelectValue placeholder="انتخاب سطح دشواری" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="beginner">مبتدی</SelectItem>
+                  <SelectItem value="intermediate">متوسط</SelectItem>
+                  <SelectItem value="advanced">پیشرفته</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsAddingWord(false)}>
                 انصراف
               </Button>
-              <Button onClick={addDifficultWord} disabled={!selectedText || !newWord.meaning || isAddingWord}>
+              <Button 
+                onClick={addDifficultWord} 
+                disabled={!selectedWordInfo?.meaning || isAddingWord}
+              >
                 {isAddingWord ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
                 افزودن
               </Button>
@@ -817,7 +874,7 @@ export function RichTextEditor({
         </DialogContent>
       </Dialog>
 
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{__html: `
         .ProseMirror {
           min-height: 300px;
           outline: none;
@@ -854,7 +911,7 @@ export function RichTextEditor({
           background-color: rgba(168, 85, 247, 0.2);
           border-bottom: 2px solid rgba(168, 85, 247, 0.8);
         }
-      `}</style>
+      `}} />
     </div>
   )
 }

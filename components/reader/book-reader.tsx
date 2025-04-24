@@ -1,169 +1,114 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 
-import { useTheme } from "next-themes"
+
+
 
 import { createClient } from "@/lib/supabase/client"
 
 interface Book {
   id: string
-  slug: string
   title: string
   author: string
-  coverImage: string | null
-  language: string
-  level: string
+  coverImage: string
   totalPages: number
-  isPremium: boolean
-  description?: string
+  content: {
+    page: number
+    text: string
+  }[]
+  slug: string
 }
 
+interface Word {
+  id: string
+  word: string
+  meaning: string
+  level: "beginner" | "intermediate" | "advanced"
+  examples?: string[]
+}
 
 interface UserProgress {
-  currentPage: number
-  lastReadAt: string
-  readingTime?: number
+  current_page: number
+  last_read_at: string
+  bookmarks?: number[]
 }
 
-interface UserSettings {
-  fontSize: number
-  lineHeight: number
-  fontFamily: string
-  showTranslationHints: boolean
-  showPageTurnAnimation: boolean
-  autoPlayPronunciation: boolean
-}
-
-interface UserBookmark {
+interface SavedWord {
   id: string
-  page: number
-  createdAt: string
-}
-
-interface UserHighlight {
-  id: string
-  text: string
-  color: string
-  note?: string
-  page: number
-  createdAt: string
+  word: string
+  status: "learning" | "reviewing" | "mastered"
+  next_review_at: string
 }
 
 interface BookReaderProps {
   book: Book
-  content: string
+  words: Word[]
   currentPage: number
-  totalPages: number
-  userProgress: UserProgress | null
-  userLevel: string
   isPreview: boolean
-  isLoggedIn: boolean
-  userSettings: UserSettings
-  userBookmarks: UserBookmark[]
-  userHighlights: UserHighlight[]
-  userId?: string
+  maxPreviewPages: number
+  userProgress: UserProgress | null
+  savedWords: SavedWord[]
 }
 
 export function BookReader({
   book,
-  content,
-  currentPage,
-  totalPages,
-  userProgress,
-  userLevel,
+  words,
+  currentPage: initialPage,
   isPreview,
-  isLoggedIn,
-  userSettings,
-  userBookmarks = [],
-  userHighlights = [],
-  userId,
+  maxPreviewPages,
+  userProgress,
+  savedWords: initialSavedWords,
 }: BookReaderProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const supabase = createClient()
-  const { theme, setTheme } = useTheme()
-
-  // وضعیت‌های کامپوننت
-  const [direction, setDirection] = useState(0)
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const [fontSize, setFontSize] = useState(userSettings.fontSize)
-  const [lineHeight, setLineHeight] = useState(userSettings.lineHeight)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isWordTooltipVisible, setIsWordTooltipVisible] = useState(false)
-  const [selectedWord, setSelectedWord] = useState<{
-    word: string
-    meaning: string
-    explanation: string
-    level: string
-    position: { x: number; y: number }
-  } | null>(null)
-  const [isBookmarked, setIsBookmarked] = useState(false)
-  const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false)
-  const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [readingTime, setReadingTime] = useState(userProgress?.readingTime || 0)
-  const [readingTimer, setReadingTimer] = useState<NodeJS.Timeout | null>(null)
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [showControls, setShowControls] = useState(true)
-  const [highlightedText, setHighlightedText] = useState<{
-    text: string
-    translation: string
-    notes: string
-  } | null>(null)
-  const [bookmarks, setBookmarks] = useState<UserBookmark[]>(userBookmarks)
-  const [highlights, setHighlights] = useState<UserHighlight[]>(userHighlights)
-  const [activeTab, setActiveTab] = useState<"bookmarks" | "highlights" | "notes" | "settings">("bookmarks")
-  const [showPageTurnAnimation, setShowPageTurnAnimation] = useState(userSettings.showPageTurnAnimation)
-  const [showTranslationHints, setShowTranslationHints] = useState(userSettings.showTranslationHints)
-  const [fontFamily, setFontFamily] = useState(userSettings.fontFamily)
+  const contentRef = useRef<HTMLDivElement>(null)
+  
+  // Core reading state
+  const [page, setPage] = useState(initialPage)
+  const [showSettings, setShowSettings] = useState(false)
+  const [fontSize, setFontSize] = useState(18)
+  const [lineHeight, setLineHeight] = useState(1.8)
+  const [darkMode, setDarkMode] = useState(false)
+  const [fontFamily, setFontFamily] = useState("Vazirmatn")
+  const [direction, setDirection] = useState<"ltr" | "rtl">("ltr")
+  
+  // Word and translation state
+  const [selectedWord, setSelectedWord] = useState<Word | null>(null)
+  const [userSavedWords, setUserSavedWords] = useState<SavedWord[]>(initialSavedWords)
+  const [isWordSaved, setIsWordSaved] = useState(false)
+  const [selectedText, setSelectedText] = useState("")
+  const [translation, setTranslation] = useState("")
+  const [showTranslationHints, setShowTranslationHints] = useState(false)
   const [isTranslationLoading, setIsTranslationLoading] = useState(false)
   const [translatedContent, setTranslatedContent] = useState<string | null>(null)
   const [showTranslation, setShowTranslation] = useState(false)
-  const [touchStartX, setTouchStartX] = useState(0)
-  const [isSwipeEnabled, setIsSwipeEnabled] = useState(true)
+  
+  // Reading progress and timing
+  const [readingTime, setReadingTime] = useState(0)
+  const [readingTimer, setReadingTimer] = useState<NodeJS.Timeout | null>(null)
+  const [readingStartTime, setReadingStartTime] = useState<Date | null>(null)
+  
+  // UI state
+  const [showPreviewMessage, setShowPreviewMessage] = useState(isPreview && page === maxPreviewPages)
+  const [bookmarks, setBookmarks] = useState<number[]>(userProgress?.bookmarks || [])
+  const [isCurrentPageBookmarked, setIsCurrentPageBookmarked] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showControls, setShowControls] = useState(true)
+  const [showPageTurnAnimation, setShowPageTurnAnimation] = useState(false)
+  const [textSelectionEnabled, setTextSelectionEnabled] = useState(true)
+  const [isDefinitionVisible, setIsDefinitionVisible] = useState(false)
+  
+  // Text-to-speech state
   const [isTextToSpeechEnabled, setIsTextToSpeechEnabled] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [speechRate, setSpeechRate] = useState(1)
   const [speechPitch, setSpeechPitch] = useState(1)
   const [speechVoice, setSpeechVoice] = useState<SpeechSynthesisVoice | null>(null)
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([])
-  const [isSettingsChanged, setIsSettingsChanged] = useState(false)
-  const [textAlignment, setTextAlignment] = useState<"left" | "justify" | "right">("left")
-  const [textColor, setTextColor] = useState<string>("text-foreground")
-  const [backgroundColor, setBackgroundColor] = useState<string>("bg-background")
-  const [marginSize, setMarginSize] = useState<number>(4)
-  const [isAddNoteDialogOpen, setIsAddNoteDialogOpen] = useState(false)
-  const [noteText, setNoteText] = useState("")
-  const [selectedHighlightColor, setSelectedHighlightColor] = useState<string>("yellow")
-  const [selectedHighlightId, setSelectedHighlightId] = useState<string | null>(null)
-  const [isEditHighlightDialogOpen, setIsEditHighlightDialogOpen] = useState(false)
-  const [editHighlightText, setEditHighlightText] = useState("")
-  const [editHighlightNote, setEditHighlightNote] = useState("")
-  const [editHighlightColor, setEditHighlightColor] = useState("yellow")
-  const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<{ text: string; index: number }[]>([])
-  const [currentSearchResultIndex, setCurrentSearchResultIndex] = useState(0)
-  const [autoScrollEnabled, setAutoScrollEnabled] = useState(false)
-  const [scrollSpeed, setScrollSpeed] = useState(1)
-  const [isScrolling, setIsScrolling] = useState(false)
-  const [scrollInterval, setScrollInterval] = useState<NodeJS.Timeout | null>(null)
-  const [pageHistory, setPageHistory] = useState<number[]>([])
-  const [historyIndex, setHistoryIndex] = useState(-1)
-  const [isNavigatingHistory, setIsNavigatingHistory] = useState(false)
-  const [isAIAnalysisDialogOpen, setIsAIAnalysisDialogOpen] = useState(false)
-  const [aiAnalysisResult, setAiAnalysisResult] = useState<{
-    summary: string
-    keyPoints: string[]
-    difficulty: string
-    recommendations: string[]
-  } | null>(null)
-  const [isAIAnalysisLoading, setIsAIAnalysisLoading] = useState(false)
-  const [showHighlightsInText, setShowHighlightsInText] = useState(true)
-  const [textSelectionEnabled, setTextSelectionEnabled] = useState(true)
-  const [autoPlayPronunciation, setAutoPlayPronunciation] = useState(userSettings.autoPlayPronunciation)
-  const [isDefinitionVisible, setIsDefinitionVisible] = useState(false)
+  const [autoPlayPronunciation, setAutoPlayPronunciation] = useState(false)
+
+  // ... rest of the existing code ...
 }

@@ -1,18 +1,17 @@
 "use client"
 
-import React from "react"
-import { useState } from "react"
+import React, { useState } from "react"
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import { AuthError } from '@supabase/supabase-js'
 import { motion } from "framer-motion"
 import { BookOpen, AlertCircle } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as z from "zod"
-
 
 import { useSupabaseAuth } from "@/components/providers/auth-provider"
 import { Button } from "@/components/ui/button"
@@ -30,10 +29,11 @@ interface LoginFormProps {
   errorMessage?: string
 }
 
-const LoginForm = ({ redirectUrl = '/dashboard', errorMessage }: LoginFormProps) => {
+const LoginForm = ({ redirectUrl = '/dashboard', errorMessage }: LoginFormProps): React.ReactElement => {
   const router = useRouter()
-  const { signIn, signInWithGoogle, isLoading: authLoading } = useSupabaseAuth()
+  const { signIn, signInWithGoogle } = useSupabaseAuth()
   const [formError, setFormError] = useState<string | null>(errorMessage || null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -43,31 +43,43 @@ const LoginForm = ({ redirectUrl = '/dashboard', errorMessage }: LoginFormProps)
     },
   })
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+  const onSubmit = async (data: z.infer<typeof formSchema>): Promise<void> => {
     setFormError(null)
 
     try {
+      setIsLoading(true)
       await signIn(data.email, data.password)
       toast.success('Logged in successfully')
       router.push(redirectUrl)
-    } catch (error: any) {
-      console.error('Login error:', error)
-      const errorMessage = error.message || 'Something went wrong. Please try again.'
+    } catch (error) {
+      const errorMessage = error instanceof AuthError 
+        ? error.message 
+        : "An unexpected error occurred during sign in"
+      
       setFormError(errorMessage)
       toast.error(errorMessage)
+      console.error("Login error:", error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = async (): Promise<void> => {
     try {
+      setIsLoading(true)
       await signInWithGoogle()
       toast.success('Logged in with Google successfully')
       router.push(redirectUrl)
-    } catch (error: any) {
-      console.error('Google login error:', error)
-      const errorMessage = error.message || 'Error signing in with Google'
+    } catch (error) {
+      const errorMessage = error instanceof AuthError 
+        ? error.message 
+        : "An unexpected error occurred during Google sign in"
+      
       setFormError(errorMessage)
       toast.error(errorMessage)
+      console.error("Google login error:", error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -111,7 +123,7 @@ const LoginForm = ({ redirectUrl = '/dashboard', errorMessage }: LoginFormProps)
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter your email" {...field} type="email" disabled={authLoading} />
+                        <Input placeholder="Enter your email" {...field} type="email" disabled={isLoading} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -125,15 +137,15 @@ const LoginForm = ({ redirectUrl = '/dashboard', errorMessage }: LoginFormProps)
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter your password" {...field} type="password" disabled={authLoading} />
+                        <Input placeholder="Enter your password" {...field} type="password" disabled={isLoading} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <Button type="submit" className="w-full" disabled={authLoading}>
-                  {authLoading ? 'Signing in...' : 'Sign in'}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Signing in...' : 'Sign in'}
                 </Button>
               </form>
             </Form>
@@ -152,7 +164,7 @@ const LoginForm = ({ redirectUrl = '/dashboard', errorMessage }: LoginFormProps)
               type="button"
               className="w-full"
               onClick={handleGoogleLogin}
-              disabled={authLoading}
+              disabled={isLoading}
             >
               <svg
                 className="mr-2 size-4"

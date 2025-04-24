@@ -2,8 +2,7 @@
 
 import * as React from "react"
 
-import { useRouter } from "next/navigation"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/client"
 import type { BaseWord, Word, WordStats } from "@/types/vocabulary"

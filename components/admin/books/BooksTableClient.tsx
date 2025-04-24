@@ -2,10 +2,11 @@
 
 import { useState } from "react"
 
+import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-import { MoreHorizontal, Search, Plus, Pencil, Trash, BookOpen, FileText } from "lucide-react"
+import { BookOpen, FileText, MoreHorizontal, Pencil, Plus, Search, Trash } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -146,14 +147,18 @@ export function BooksTableClient({ initialBooks }: BooksTableClientProps) {
                   <TableCell>
                     <div className="h-10 w-8 overflow-hidden rounded">
                       {book.coverImage ? (
-                        <img
-                          src={book.coverImage || "/placeholder.svg"}
-                          alt={book.title}
-                          className="size-full object-cover"
+                        <Image 
+                          src={book.coverImage}
+                          alt={`Cover of ${book.title}`}
+                          width={32}
+                          height={40}
+                          className="rounded-md object-cover"
+                          priority={false}
+                          sizes="32px"
                         />
                       ) : (
-                        <div className="bg-muted flex size-full items-center justify-center">
-                          <BookOpen className="text-muted-foreground size-4" />
+                        <div className="bg-muted flex size-full items-center justify-center" aria-label="No cover image available">
+                          <BookOpen className="text-muted-foreground size-4" aria-hidden="true" />
                         </div>
                       )}
                     </div>

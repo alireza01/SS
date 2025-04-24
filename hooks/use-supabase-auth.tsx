@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect, createContext, useContext } from "react"
+import { useEffect, useState, createContext, useContext } from "react"
 
 import { useRouter } from "next/navigation"
 
@@ -22,7 +21,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }): React.ReactElement {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -31,7 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
 
   useEffect(() => {
-    const getSession = async () => {
+    const getSession = async (): Promise<void> => {
       setIsLoading(true)
       try {
         const {
@@ -74,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [supabase.auth])
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string): Promise<void> => {
     setIsLoading(true)
     try {
       const { error } = await supabase.auth.signUp({
@@ -87,13 +86,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/auth/verify")
     } catch (error) {
       console.error("Error signing up:", error)
-      throw error
+      throw error instanceof Error ? error : new Error("Unknown error occurred")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<void> => {
     setIsLoading(true)
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -106,13 +105,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/dashboard")
     } catch (error) {
       console.error("Error signing in:", error)
-      throw error
+      throw error instanceof Error ? error : new Error("Unknown error occurred")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const signOut = async () => {
+  const signOut = async (): Promise<void> => {
     setIsLoading(true)
     try {
       const { error } = await supabase.auth.signOut()
@@ -122,13 +121,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/")
     } catch (error) {
       console.error("Error signing out:", error)
-      throw error
+      throw error instanceof Error ? error : new Error("Unknown error occurred")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const resetPassword = async (email: string) => {
+  const resetPassword = async (email: string): Promise<void> => {
     setIsLoading(true)
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -139,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error("Error resetting password:", error)
-      throw error
+      throw error instanceof Error ? error : new Error("Unknown error occurred")
     } finally {
       setIsLoading(false)
     }
@@ -159,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-export function useSupabaseAuth() {
+export function useSupabaseAuth(): AuthContextType {
   const context = useContext(AuthContext)
   if (context === undefined) {
     throw new Error("useSupabaseAuth must be used within an AuthProvider")

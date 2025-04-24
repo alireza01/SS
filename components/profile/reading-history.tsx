@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 
+import Image from "next/image"
+
 import { BookOpen, Clock, Calendar } from "lucide-react"
 import { toast } from "sonner"
 
@@ -149,17 +151,15 @@ export function ReadingHistory({ userId }: ReadingHistoryProps) {
                 <CardContent className="p-6">
                   <div className="flex flex-col gap-4 md:flex-row">
                     <div className="shrink-0">
-                      {session.coverImage ? (
-                        <img
-                          src={session.coverImage || "/placeholder.svg"}
-                          alt={session.bookTitle}
-                          className="h-32 w-24 rounded-md object-cover shadow-md"
+                      <div className="relative aspect-[2/3] w-16 overflow-hidden rounded-md">
+                        <Image
+                          src={session.coverImage || "/images/placeholder.svg"}
+                          alt={`Cover of ${session.bookTitle}`}
+                          fill
+                          className="object-cover"
+                          sizes="64px"
                         />
-                      ) : (
-                        <div className="bg-muted flex h-32 w-24 items-center justify-center rounded-md shadow-md">
-                          <BookOpen className="text-muted-foreground size-8" />
-                        </div>
-                      )}
+                      </div>
                     </div>
 
                     <div className="grow">

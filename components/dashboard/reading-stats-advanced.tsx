@@ -1,6 +1,5 @@
 "use client"
 
-import type React from "react"
 import { useState, useEffect } from "react"
 
 import { Clock, BookOpen, Lightbulb, BarChart3, PieChartIcon, LineChartIcon } from "lucide-react"

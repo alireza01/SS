@@ -35,6 +35,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    ".eslintrc.js",
+    "**/*.d.ts",
     "types/**/*.d.ts",
     "components/**/*.tsx",
     "lib/**/*.ts",

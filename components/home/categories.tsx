@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 
+import Image from "next/image"
+
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -136,10 +138,12 @@ export function Categories() {
           {filteredBooks.map((book) => (
             <Card key={book.id} className="overflow-hidden">
               <div className="relative aspect-[2/3]">
-                <img
+                <Image
                   src={book.coverImage || "/images/book-placeholder.svg"}
                   alt={book.title}
-                  className="size-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                 />
                 <div className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-1 text-xs font-medium dark:bg-gray-800/90">
                   {book.rating?.toFixed(1) || "N/A"}

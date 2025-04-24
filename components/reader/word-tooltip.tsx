@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 
 import { motion } from "framer-motion"
 import { Volume2, Plus, Check, ExternalLink } from "lucide-react"
@@ -17,10 +17,10 @@ interface WordTooltipProps {
   explanation: string
   level: string
   position: { x: number; y: number }
-  onClose: () => void
+  isVisible: boolean
 }
 
-export function WordTooltip({ word, meaning, explanation, level, position, onClose }: WordTooltipProps) {
+export function WordTooltip({ word, meaning, explanation, level, position, isVisible }: WordTooltipProps) {
   const supabase = createClient()
   const [isSaved, setIsSaved] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -28,6 +28,27 @@ export function WordTooltip({ word, meaning, explanation, level, position, onClo
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null)
   const [examples, setExamples] = useState<string[]>([])
   const [showExamples, setShowExamples] = useState(false)
+
+  const fetchExamples = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('examples')
+        .select('text')
+        .eq('word', word)
+        .limit(3)
+      
+      if (error) throw error
+      setExamples(data.map(e => e.text))
+    } catch (error) {
+      console.error('Error fetching examples:', error)
+    }
+  }, [supabase, word])
+
+  useEffect(() => {
+    if (isVisible && word) {
+      fetchExamples()
+    }
+  }, [isVisible, word, fetchExamples])
 
   // بررسی وضعیت ذخیره کلمه
   useEffect(() => {
@@ -50,27 +71,7 @@ export function WordTooltip({ word, meaning, explanation, level, position, onClo
     }
 
     checkSavedStatus()
-
-    // دریافت مثال‌ها
-    fetchExamples()
   }, [supabase, word])
-
-  // دریافت مثال‌ها
-  const fetchExamples = async () => {
-    try {
-      // در یک پروژه واقعی، این داده‌ها از API یا دیتابیس دریافت می‌شوند
-      // برای نمونه، مثال‌های ساختگی ایجاد می‌کنیم
-      const exampleSentences = [
-        `The ${word} was clearly visible from a distance.`,
-        `She couldn't understand the ${word} in this context.`,
-        `They discussed the ${word} in their meeting yesterday.`,
-      ]
-
-      setExamples(exampleSentences)
-    } catch (error) {
-      console.error("خطا در دریافت مثال‌ها:", error)
-    }
-  }
 
   // پخش تلفظ کلمه
   const playPronunciation = () => {

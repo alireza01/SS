@@ -102,10 +102,12 @@ export function TrendingBooks() {
               <CardContent className="p-0">
                 <div className="relative aspect-[2/3]">
                   <Image
-                    src={book.coverImage || "/images/book-placeholder.jpg"}
-                    alt={book.title}
+                    src={book.coverImage || "/images/book-placeholder.svg"}
+                    alt={`Cover of ${book.title}`}
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                    priority={index < 4}
                   />
                 </div>
                 <div className="p-4">
@@ -113,7 +115,11 @@ export function TrendingBooks() {
                     {book.title}
                   </h3>
                   <p className="text-muted-foreground mb-2 text-sm">{book.author}</p>
-                  <Badge variant="secondary" className={getLevelColor(book.level)}>
+                  <Badge 
+                    variant="secondary" 
+                    className={getLevelColor(book.level)}
+                    role="status"
+                  >
                     {getLevelText(book.level)}
                   </Badge>
                 </div>

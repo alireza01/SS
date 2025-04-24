@@ -70,7 +70,7 @@ export function generateSlug(str: string) {
     .trim()
 }
 
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -151,12 +151,12 @@ export function getLevelText(level: string): string {
 }
 
 export interface SlugOptions {
-  table?: string
+  table: string
   maxLength?: number
   separator?: string
 }
 
-const defaultSlugOptions: SlugOptions = {
+const defaultSlugOptions: Required<SlugOptions> = {
   table: "books",
   maxLength: 100,
   separator: "-"
@@ -168,7 +168,7 @@ const defaultSlugOptions: SlugOptions = {
  */
 export async function generateUniqueSlug(
   str: string,
-  options: SlugOptions = defaultSlugOptions
+  options: Partial<SlugOptions> = {}
 ): Promise<string> {
   const { table, maxLength, separator } = { ...defaultSlugOptions, ...options }
   
@@ -178,9 +178,9 @@ export async function generateUniqueSlug(
     // Handle Persian/Arabic characters
     .replace(/[^a-z0-9\u0600-\u06FF\s-]/g, "")
     // Replace spaces with separator
-    .replace(/\s+/g, separator!)
+    .replace(/\s+/g, separator)
     // Remove multiple separators
-    .replace(new RegExp(`${separator}+`, "g"), separator!)
+    .replace(new RegExp(`${separator}+`, "g"), separator)
     // Trim separators from start and end
     .replace(new RegExp(`^${separator}+|${separator}+$`, "g"), "")
     
@@ -197,7 +197,7 @@ export async function generateUniqueSlug(
 
   while (!isUnique) {
     const { data } = await supabase
-      .from(table!)
+      .from(table)
       .select("slug")
       .eq("slug", uniqueSlug)
       .maybeSingle()

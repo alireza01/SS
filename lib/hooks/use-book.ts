@@ -36,27 +36,30 @@ export function useBook(slugOrId: string): UseBookResult {
       setError(null)
 
       // Try fetching by slug first
-      let { data, error: slugError } = await supabase
+      const { data: bookBySlug, error: bookError } = await supabase
         .from("books")
-        .select("*, categories(name)")
+        .select("*")
         .eq("slug", slugOrId)
         .single()
 
+      const slugError = !bookBySlug ? new Error("Book not found") : null
+
       // If not found by slug, try by ID
+      let finalBook = bookBySlug
       if (slugError) {
         const { data: idData, error: idError } = await supabase
           .from("books")
-          .select("*, categories(name)")
+          .select("*")
           .eq("id", slugOrId)
           .single()
 
         if (idError) {
           throw new Error("Book not found")
         }
-        data = idData
+        finalBook = idData
       }
 
-      setBook(data)
+      setBook(finalBook)
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to fetch book"))
     } finally {

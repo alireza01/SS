@@ -3,10 +3,10 @@
 import { ErrorCard } from "@/components/error-card"
 
 export default function Error({
-  error,
+  _error,
   reset,
 }: {
-  error: Error & { digest?: string }
+  _error: Error & { digest?: string }
   reset: () => void
 }) {
   return (

@@ -1,8 +1,8 @@
 "use client"
 
-import React from "react"
 import { useState, useRef } from "react"
 
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 
 import { format } from "date-fns-jalali"
@@ -418,9 +418,11 @@ export function AddBookForm({ categories }: AddBookFormProps) {
                       {coverPreview ? (
                         <div className="flex flex-col items-center">
                           <div className="relative mb-4 h-56 w-40">
-                            <img
+                            <Image
                               src={coverPreview || "/placeholder.svg"}
                               alt="پیش‌نمایش جلد"
+                              width={160}
+                              height={240}
                               className="size-full rounded-md object-cover"
                             />
                           </div>
@@ -721,28 +723,20 @@ export function AddBookForm({ categories }: AddBookFormProps) {
         </form>
       </Tabs>
 
-      <style jsx global>{`
-        .word {
-          cursor: pointer;
-          position: relative;
+      <style dangerouslySetInnerHTML={{__html: `
+        .ProseMirror {
+          min-height: 300px;
+          outline: none;
         }
         
-        .word-beginner {
-          border-bottom: 2px solid rgba(74, 222, 128, 0.8);
+        .ProseMirror p.is-editor-empty:first-child::before {
+          content: attr(data-placeholder);
+          float: left;
+          color: #adb5bd;
+          pointer-events: none;
+          height: 0;
         }
-        
-        .word-intermediate {
-          border-bottom: 2px solid rgba(59, 130, 246, 0.8);
-        }
-        
-        .word-advanced {
-          border-bottom: 2px solid rgba(168, 85, 247, 0.8);
-        }
-        
-        .word:hover {
-          background-color: rgba(209, 213, 219, 0.2);
-        }
-      `}</style>
+      `}} />
     </div>
   )
 }

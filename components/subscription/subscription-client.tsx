@@ -87,7 +87,14 @@ export function SubscriptionClient({ subscription, plans }: SubscriptionClientPr
 
       // TODO: Integrate with payment gateway
       // Simulating payment process
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      await new Promise<void>((resolve, reject) => {
+        try {
+          // Your async code here
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      });
 
       const subscriptionData = {
         planId: selectedPlan,

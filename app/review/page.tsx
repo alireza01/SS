@@ -4,7 +4,7 @@ import { ReviewClient } from "@/components/review/review-client"
 import { createServerClient } from "@/lib/supabase/app-server"
 import type { WordToReview, WordStats, Book, WordLevel, WordStatus } from "@/types/vocabulary"
 
-interface SupabaseWordToReview {
+interface _SupabaseWordToReview {
   id: string;
   word: string;
   meaning: string | null;

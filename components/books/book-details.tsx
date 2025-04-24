@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
 
+
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
@@ -61,8 +62,8 @@ export function BookDetails({ book, userProgress, relatedBooks, isLoggedIn }: Bo
   const [activeTab, setActiveTab] = useState("description")
   const [isLoading, setIsLoading] = useState(false)
   const [isBookmarked, setIsBookmarked] = useState(false)
-  const [rating, setRating] = useState(0)
-  const [userRating, setUserRating] = useState(0)
+  const [userRating, setUserRating] = useState<number | null>(null)
+  const [rating, setRating] = useState<number | null>(null)
 
   const progress = userProgress ? Math.round((userProgress.currentPage / book.totalPages) * 100) : 0
 
@@ -83,7 +84,7 @@ export function BookDetails({ book, userProgress, relatedBooks, isLoggedIn }: Bo
 
   const toggleBookmark = async () => {
     if (!isLoggedIn) {
-      toast.error("لطفاً ابتدا وارد حساب کاربری خود شوید")
+      toast.error("Please login to bookmark books")
       return
     }
 
@@ -112,11 +113,13 @@ export function BookDetails({ book, userProgress, relatedBooks, isLoggedIn }: Bo
 
   const rateBook = async (value: number) => {
     if (!isLoggedIn) {
-      toast.error("لطفاً ابتدا وارد حساب کاربری خود شوید")
+      toast.error("Please login to rate books")
       return
     }
 
     try {
+      setIsLoading(true)
+      setRating(value)
       const { data: userData } = await supabase.auth.getUser()
       if (!userData.user) return
 
@@ -146,18 +149,18 @@ export function BookDetails({ book, userProgress, relatedBooks, isLoggedIn }: Bo
     } catch (error) {
       console.error("خطا در ثبت امتیاز:", error)
       toast.error("خطا در ثبت امتیاز")
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
     <div className="container py-8">
       <div className="mb-8 flex items-center gap-2">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/library">
-            <ArrowLeft className="ml-1 size-4" />
-            بازگشت به کتابخانه
-          </Link>
-        </Button>
+        <Link href="/library">
+          <ArrowLeft className="ml-1 size-4" />
+          بازگشت به کتابخانه
+        </Link>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -168,14 +171,18 @@ export function BookDetails({ book, userProgress, relatedBooks, isLoggedIn }: Bo
                 {book.coverImage ? (
                   <Image
                     src={book.coverImage}
-                    alt={book.title}
+                    alt={`Cover of ${book.title}`}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    sizes="(max-width: 640px) 240px, 192px"
                     priority
+                    quality={90}
                   />
                 ) : (
-                  <div className="bg-muted flex h-full items-center justify-center">
+                  <div 
+                    className="bg-muted flex h-full items-center justify-center"
+                    aria-label="No cover image available"
+                  >
                     <span className="text-muted-foreground">No cover</span>
                   </div>
                 )}

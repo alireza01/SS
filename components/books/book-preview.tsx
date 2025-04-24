@@ -5,16 +5,16 @@ import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight, Settings2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/client"
 
 interface BookPreviewProps {
@@ -24,11 +24,13 @@ interface BookPreviewProps {
 export function BookPreview({ slug }: BookPreviewProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [fontSize, setFontSize] = useState(16)
+  const [lineHeight, setLineHeight] = useState(1.5)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [bookContent, setBookContent] = useState<string | null>(null)
   const [totalPages, setTotalPages] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [comment, setComment] = useState("")
   const supabase = createClient()
 
   useEffect(() => {
@@ -121,23 +123,54 @@ export function BookPreview({ slug }: BookPreviewProps) {
           </SheetTrigger>
           <SheetContent>
             <SheetHeader>
-              <SheetTitle>تنظیمات نمایش</SheetTitle>
-              <SheetDescription>تنظیمات نمایش متن را شخصی‌سازی کنید.</SheetDescription>
+              <SheetTitle>تنظیمات</SheetTitle>
             </SheetHeader>
-            <div className="space-y-6 py-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">اندازه متن</label>
-                <Slider
-                  value={[fontSize]}
-                  onValueChange={([value]: number[]) => setFontSize(value)}
-                  min={12}
-                  max={24}
-                  step={1}
-                />
+            <div className="space-y-4">
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="font-size" className="mb-2 block text-sm font-medium">
+                    اندازه فونت
+                  </label>
+                  <input
+                    id="font-size"
+                    type="range"
+                    min="12"
+                    max="32"
+                    value={fontSize}
+                    onChange={(e) => setFontSize(Number(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="line-height" className="mb-2 block text-sm font-medium">
+                    فاصله خطوط
+                  </label>
+                  <input
+                    id="line-height"
+                    type="range"
+                    min="1"
+                    max="3"
+                    step="0.1"
+                    value={lineHeight}
+                    onChange={(e) => setLineHeight(Number(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">حالت تاریک</label>
-                <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="dark-mode">حالت تاریک</Label>
+                  <Switch id="dark-mode" checked={isDarkMode} onCheckedChange={toggleDarkMode} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="comment">نظر شما</Label>
+                  <Textarea
+                    id="comment"
+                    placeholder="نظر خود را بنویسید..."
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
           </SheetContent>

@@ -14,8 +14,7 @@ import { badgeVariants } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/client"
-import { formatPrice } from "@/lib/utils"
-import { cn } from "@/lib/utils"
+import { formatPrice, cn } from "@/lib/utils"
 
 
 interface Book {
@@ -236,15 +235,19 @@ export const BookGrid: FC = () => {
                         <div className="relative">
                           <div className="relative aspect-[2/3]">
                             <Image
-                              src={book.cover_image || "/placeholder.svg?height=300&width=200"}
-                              alt={`جلد کتاب ${book.title}`}
+                              src={book.cover_image || "/placeholder.svg"}
+                              alt={`Cover of ${book.title}`}
                               fill
                               className="object-cover"
                               onError={handleImageError}
-                              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
+                              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                              priority={index < 4}
                             />
                           </div>
-                          <div className="absolute right-2 top-2 flex items-center rounded-full bg-white/90 px-2 py-1 shadow-md dark:bg-gray-800/90" aria-label={`امتیاز ${book.rating.toFixed(1)} از 5`}>
+                          <div 
+                            className="absolute right-2 top-2 flex items-center rounded-full bg-white/90 px-2 py-1 shadow-md dark:bg-gray-800/90" 
+                            aria-label={`Rating ${book.rating.toFixed(1)} out of 5`}
+                          >
                             <Star className="ml-1 size-3 fill-yellow-500 text-yellow-500" aria-hidden="true" />
                             <span className="text-gold-800 dark:text-gold-200 text-xs font-medium">
                               {book.rating.toFixed(1)}
@@ -253,10 +256,13 @@ export const BookGrid: FC = () => {
 
                           {book.has_free_trial && (
                             <div className="absolute left-2 top-2">
-                              <div className={cn(
-                                badgeVariants({ variant: "default" }),
-                                "from-gold-300 to-gold-400 border-none bg-gradient-to-r text-white hover:opacity-90"
-                              )}>
+                              <div 
+                                className={cn(
+                                  badgeVariants({ variant: "default" }),
+                                  "from-gold-300 to-gold-400 border-none bg-gradient-to-r text-white hover:opacity-90"
+                                )}
+                                role="status"
+                              >
                                 نسخه رایگان
                               </div>
                             </div>

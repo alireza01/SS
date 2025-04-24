@@ -3,15 +3,12 @@ import { NextResponse } from "next/server"
 import { WordDefinitionGenerator } from "@/components/ai/word-definition-generator"
 import { WordsList } from "@/components/words-list"
 import { createServerClient } from "@/lib/supabase/server"
-import type { Database } from "@/types/supabase"
 
 interface WordsPageProps {
   params: {
     slug: string
   }
 }
-
-type Book = Database["public"]["Tables"]["books"]["Row"]
 
 export default async function WordsPage({ params }: WordsPageProps) {
   const { slug } = params

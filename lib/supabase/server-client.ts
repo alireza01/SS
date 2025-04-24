@@ -3,13 +3,12 @@
 import type { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies"
 import { cookies } from "next/headers"
 
-import { createServerClient as createClient } from "@supabase/ssr"
+import { createServerClient as createClient, type CookieOptions } from "@supabase/ssr"
 
 import type { Database } from "@/types/supabase"
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY, DEFAULT_COOKIE_OPTIONS } from "./config"
 
-import type { CookieOptions } from "@supabase/ssr"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 /**

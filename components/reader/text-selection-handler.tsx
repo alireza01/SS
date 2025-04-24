@@ -5,6 +5,8 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Copy, Highlighter, Languages, BookmarkPlus, VolumeIcon as VolumeUp } from "lucide-react"
 
+import { cn } from "@/lib/utils"
+
 interface TextSelectionHandlerProps {
   onTranslate: (text: string) => void
   onHighlight: (text: string) => void
@@ -69,7 +71,10 @@ export function TextSelectionHandler({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 10 }}
-          className="selection-popup fixed z-50 rounded-full border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+          className={cn(
+            "bg-background fixed z-50 flex items-center justify-center gap-2 rounded-lg p-2 shadow-lg",
+            "transition-transform duration-200 ease-in-out"
+          )}
           style={{
             left: `${position.x}px`,
             top: `${position.y}px`,

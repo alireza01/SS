@@ -49,7 +49,7 @@ export function InteractiveBook({
     pageFlipEasing: pageFlipEasing,
   })
 
-  const isMobile = useMediaQuery("(max-width: 768px)")
+  const _isMobile = useMediaQuery("(max-width: 768px)")
   const containerRef = useRef<HTMLDivElement>(null)
   const pageWidth = useMotionValue(0)
   const pageHeight = useMotionValue(0)
@@ -57,7 +57,7 @@ export function InteractiveBook({
   // Motion values for the page flip animation
   const dragX = useMotionValue(0)
   const dragY = useMotionValue(0)
-  const pageRotation = useMotionValue(0)
+  const _pageRotation = useMotionValue(0)
   const pageCurl = useMotionValue(0)
   const controls = useAnimation()
   const rotateY = useMotionValue(0)
@@ -68,7 +68,7 @@ export function InteractiveBook({
 
   // Transform values for visual effects
   const shadowOpacity = useMotionValue(0)
-  const scale = useTransform(dragX, [-pageWidth.get(), 0], [0.9, 1])
+  const _scale = useTransform(dragX, [-pageWidth.get(), 0], [0.9, 1])
   const perspective = 1200
 
   // Update page dimensions when container size changes
@@ -219,6 +219,10 @@ export function InteractiveBook({
     rotateY?: number
   }
 
+  const book = containerRef.current || null;
+
+  type EventHandler = (event: React.MouseEvent<HTMLElement>) => void;
+
   return (
     <div className={cn("relative flex size-full flex-col", className)}>
       {/* Top controls */}
@@ -329,7 +333,7 @@ export function InteractiveBook({
       </div>
 
       {/* Global styles */}
-      <style jsx global>{`
+      <style>{`
         .perspective-1000 {
           perspective: 1000px;
         }

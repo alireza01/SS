@@ -15,8 +15,6 @@ import {
   ArrowLeft,
   Moon,
   Sun,
-  Type,
-  AlignJustify,
   ImportIcon as Translate,
   BookMarked,
   X,
@@ -28,7 +26,8 @@ import { WordTooltip } from "@/components/books/word-tooltip"
 import { AdvancedProgressBar } from "@/components/reader/advanced-progress-bar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Slider } from "@/components/ui/slider"
+import { Label } from "@/components/ui/label"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { saveReadingProgress } from "@/lib/actions/progress-actions"
 import { translateText } from "@/lib/gemini"
@@ -104,10 +103,10 @@ export function BookReader({
   const [isCurrentPageBookmarked, setIsCurrentPageBookmarked] = useState(false)
   const [selectedText, setSelectedText] = useState("")
   const [translation, setTranslation] = useState("")
-  const [isTranslating, setIsTranslating] = useState(false)
   const [readingTime, setReadingTime] = useState(0)
   const [readingTimer, setReadingTimer] = useState<NodeJS.Timeout | null>(null)
   const [readingStartTime, setReadingStartTime] = useState<Date | null>(null)
+  const [fontFamily, setFontFamily] = useState("Vazirmatn")
 
   // تنظیم صفحه جاری
   useEffect(() => {
@@ -140,7 +139,7 @@ export function BookReader({
 
     // ذخیره پیشرفت مطالعه کاربر
     saveReadingProgress(book.id, page, readingTime)
-  }, [page, router, book.id, isPreview, readingTime])
+  }, [page, router, book.id, isPreview, readingTime, book.slug])
 
   // شروع تایمر مطالعه
   useEffect(() => {
@@ -163,7 +162,7 @@ export function BookReader({
         clearInterval(readingTimer)
       }
     }
-  }, [readingStartTime])
+  }, [readingStartTime, readingTimer])
 
   // ذخیره بوکمارک‌ها
   const saveBookmarks = async () => {
@@ -327,7 +326,6 @@ export function BookReader({
     if (!text || text.trim() === "") return
 
     setSelectedText(text)
-    setIsTranslating(true)
 
     try {
       const result = await translateText(text, "fa")
@@ -336,8 +334,6 @@ export function BookReader({
       console.error("خطا در ترجمه متن:", error)
       toast.error("خطا در ترجمه متن")
       setTranslation("")
-    } finally {
-      setIsTranslating(false)
     }
   }
 
@@ -377,20 +373,6 @@ export function BookReader({
   // تنظیم رنگ پس‌زمینه بر اساس حالت تاریک/روشن
   const getBackgroundColor = () => {
     return darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"
-  }
-
-  // تنظیم رنگ کلمات بر اساس سطح دشواری
-  const getWordColor = (level: string) => {
-    switch (level) {
-      case "beginner":
-        return "text-green-600 dark:text-green-400"
-      case "intermediate":
-        return "text-blue-600 dark:text-blue-400"
-      case "advanced":
-        return "text-purple-600 dark:text-purple-400"
-      default:
-        return ""
-    }
   }
 
   // تبدیل ثانیه به فرمت زمان
@@ -498,46 +480,34 @@ export function BookReader({
             <Card>
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                  <div>
-                    <div className="mb-2 flex items-center justify-between">
-                      <label className="text-sm font-medium">اندازه متن</label>
-                      <span className="text-muted-foreground text-sm">{fontSize}px</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Type className="text-muted-foreground size-4" />
-                      <Slider
-                        value={[fontSize]}
-                        min={14}
-                        max={24}
-                        step={1}
-                        onValueChange={(value: number[]) => setFontSize(value[0])}
-                        className="flex-1"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fontSize" id="fontSizeLabel">اندازه متن</Label>
+                    <Select value={fontSize.toString()} onValueChange={(value) => setFontSize(parseInt(value))}>
+                      <SelectTrigger id="fontSize" aria-labelledby="fontSizeLabel">
+                        <SelectValue placeholder="انتخاب اندازه متن" />
+                      </SelectTrigger>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lineHeight" id="lineHeightLabel">فاصله خطوط</Label>
+                    <Select value={lineHeight.toString()} onValueChange={(value) => setLineHeight(parseFloat(value))}>
+                      <SelectTrigger id="lineHeight" aria-labelledby="lineHeightLabel">
+                        <SelectValue placeholder="انتخاب فاصله خطوط" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1.5">کم</SelectItem>
+                        <SelectItem value="2">متوسط</SelectItem>
+                        <SelectItem value="2.5">زیاد</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <div className="mb-2 flex items-center justify-between">
-                      <label className="text-sm font-medium">فاصله خطوط</label>
-                      <span className="text-muted-foreground text-sm">{lineHeight}x</span>
+                      <Label htmlFor="displayMode" id="displayModeLabel">حالت نمایش</Label>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <AlignJustify className="text-muted-foreground size-4" />
-                      <Slider
-                        value={[lineHeight * 10]}
-                        min={10}
-                        max={30}
-                        step={1}
-                        onValueChange={(value: number[]) => setLineHeight(value[0] / 10)}
-                        className="flex-1"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="mb-2 flex items-center justify-between">
-                      <label className="text-sm font-medium">حالت نمایش</label>
-                    </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2" role="group" aria-labelledby="displayModeLabel">
                       <Button
+                        id="displayMode"
                         variant={darkMode ? "outline" : "default"}
                         size="sm"
                         className="flex-1"
@@ -556,6 +526,19 @@ export function BookReader({
                         تاریک
                       </Button>
                     </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fontFamily" id="fontFamilyLabel">فونت</Label>
+                    <Select value={fontFamily} onValueChange={(value) => setFontFamily(value)}>
+                      <SelectTrigger id="fontFamily" aria-labelledby="fontFamilyLabel">
+                        <SelectValue placeholder="انتخاب فونت" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Vazirmatn">وزیر متن</SelectItem>
+                        <SelectItem value="IRANSans">ایران سنس</SelectItem>
+                        <SelectItem value="Sahel">ساحل</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </CardContent>
@@ -585,6 +568,19 @@ export function BookReader({
             style={{ fontSize: `${fontSize}px`, lineHeight: lineHeight }}
           >
             <div
+              role="textbox"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  const target = e.target as HTMLElement
+                  if (target.classList.contains("word")) {
+                    const word = target.getAttribute("data-word")
+                    if (word) {
+                      handleWordClick(word)
+                    }
+                  }
+                }
+              }}
               dangerouslySetInnerHTML={{ __html: processPageContent() }}
               onClick={(e) => {
                 const target = e.target as HTMLElement
@@ -598,7 +594,10 @@ export function BookReader({
             />
             <TextSelectionHandler
               onTranslate={handleTranslateSelection}
-              onHighlight={(text) => console.log("هایلایت:", text)}
+              onHighlight={(text) => {
+                // TODO: Implement highlight functionality
+                return text
+              }}
               onCopy={(text) => {
                 navigator.clipboard.writeText(text)
                 toast.success("متن کپی شد")
@@ -677,7 +676,7 @@ export function BookReader({
         darkMode={darkMode}
       />
 
-      <style jsx global>{`
+      <style>{`
         .word {
           cursor: pointer;
           position: relative;
@@ -697,6 +696,27 @@ export function BookReader({
         
         .word:hover {
           background-color: rgba(209, 213, 219, 0.2);
+        }
+      `}</style>
+
+      <style>{`
+        .book-content {
+          font-family: ${fontFamily}, system-ui, sans-serif;
+          font-size: ${fontSize}px;
+          line-height: ${lineHeight};
+        }
+        
+        .ProseMirror {
+          min-height: 300px;
+          outline: none;
+        }
+        
+        .ProseMirror p.is-editor-empty:first-child::before {
+          content: attr(data-placeholder);
+          float: left;
+          color: #adb5bd;
+          pointer-events: none;
+          height: 0;
         }
       `}</style>
     </div>

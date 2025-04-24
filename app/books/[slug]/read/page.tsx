@@ -4,7 +4,7 @@ import { ReadingAssistant } from "@/components/ai/reading-assistant"
 import { BookReaderWithFlip } from "@/components/reader/page-flip/book-reader-with-flip"
 import { createServerClient } from "@/lib/supabase/server"
 
-import type { Metadata, ResolvingMetadata } from "next"
+import type { Metadata } from "next"
 
 interface ReadPageProps {
   params: {
@@ -15,16 +15,10 @@ interface ReadPageProps {
     preview?: string
     interactiveFlip?: string
   }
-  parent: ResolvingMetadata
-}
-
-interface Author {
-  name: string | null
 }
 
 export async function generateMetadata(
-  { params, searchParams }: ReadPageProps,
-  parent: ResolvingMetadata,
+  { params }: ReadPageProps,
 ): Promise<Metadata> {
   const supabase = await createServerClient()
 

@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 
-import type { WordToReview, WordStats, WordStatus } from '@/app/types/vocabulary'
+import type { WordToReview, WordStatus } from '@/app/types/vocabulary'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -13,10 +13,9 @@ import { createClient } from '@/lib/supabase/client'
 
 interface ReviewClientProps {
   wordsToReview: WordToReview[]
-  wordStats: WordStats
 }
 
-export function ReviewClient({ wordsToReview, wordStats }: ReviewClientProps) {
+export function ReviewClient({ wordsToReview }: ReviewClientProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showMeaning, setShowMeaning] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)

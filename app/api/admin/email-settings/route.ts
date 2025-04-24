@@ -4,7 +4,6 @@ import { createServerClient } from "@/lib/supabase/app-server"
 import type { Database } from "@/lib/supabase/database.types"
 
 type EmailSettingsInsert = Database['public']['Tables']['email_settings']['Insert']
-type EmailSettingsRow = Database['public']['Tables']['email_settings']['Row']
 
 export async function POST(request: Request) {
   try {

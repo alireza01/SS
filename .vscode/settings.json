@@ -1,9 +1,18 @@
 {
-  "css.customData": [".vscode/css-data.json"],
   "css.validate": false,
   "less.validate": false,
   "scss.validate": false,
   "files.associations": {
     "*.css": "tailwindcss"
-  }
+  },
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "tailwindCSS.includeLanguages": {
+    "plaintext": "html"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["cn\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
+  ]
 } 
