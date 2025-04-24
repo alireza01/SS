@@ -1,6 +1,8 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { createBrowserClient } from "@supabase/ssr"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 import type { Database } from "@/types/supabase"
 
@@ -16,4 +18,25 @@ export function createClient() {
     throw new Error("Missing required Supabase environment variables")
   }
   return createBrowserClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY)
+}
+
+/**
+ * React hook to use Supabase client in components
+ * @returns Typed Supabase client instance
+ */
+export function useSupabaseClient() {
+  const [client] = useState(() => createClient())
+  
+  useEffect(() => {
+    // Cleanup function
+    return () => {
+      client.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          client.auth.signOut()
+        }
+      })
+    }
+  }, [client])
+
+  return client
 }

@@ -24,9 +24,28 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { createClient } from "@/lib/supabase/client"
+import { type ChartData, type ChartOptions } from 'chart.js'
 
+interface ReadingStatsProps {
+  readingTime: number
+  wordsRead: number
+  pagesRead: number
+  booksCompleted: number
+  readingStreak: number
+  readingHistory: Array<{
+    date: string
+    minutes: number
+  }>
+  wordsByLevel: Array<{
+    level: string
+    count: number
+  }>
+}
 
-
+interface ChartDataPoint {
+  date: string
+  value: number
+}
 
 interface ReadingStatsAdvancedProps {
   userId: string

@@ -65,7 +65,7 @@ interface UserStats {
 }
 
 async function getUserData(): Promise<User> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   try {
     const {
@@ -85,7 +85,7 @@ async function getUserData(): Promise<User> {
 
 const getCurrentlyReading = unstable_cache(
   async (userId: string): Promise<DbReadingProgress[]> => {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
 
     try {
       const { data, error } = await supabase
@@ -138,7 +138,7 @@ const getCurrentlyReading = unstable_cache(
 
 const getRecommendedBooks = unstable_cache(
   async (userId: string): Promise<DbBook[]> => {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
 
     try {
       const { data: userSettings, error: settingsError } = await supabase
@@ -202,7 +202,7 @@ const getRecommendedBooks = unstable_cache(
 
 const getUserStats = unstable_cache(
   async (userId: string): Promise<UserStats> => {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
 
     try {
       const { data, error } = await supabase
@@ -242,7 +242,7 @@ const getUserStats = unstable_cache(
 
 const getRecentActivity = unstable_cache(
   async (userId: string): Promise<DbActivity[]> => {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
 
     try {
       const { data, error } = await supabase
@@ -289,7 +289,7 @@ const getRecentActivity = unstable_cache(
 
 const getDailyGoals = unstable_cache(
   async (userId: string) => {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
 
     // Get daily goals
     const { data: settings } = await supabase

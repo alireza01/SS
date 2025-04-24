@@ -1,11 +1,14 @@
 import { createClient } from '@supabase/supabase-js'
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, type Database } from './config'
 
 import { handleError, AuthenticationError } from '@/lib/utils/error-handling'
 
-import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, type Database } from './config'
+// Create a single supabase client for interacting with your database
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error('Missing Supabase environment variables')
+}
 
-// Client with anonymous key for public operations
-export const supabase = createClient<Database>(SUPABASE_URL!, SUPABASE_ANON_KEY!)
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 /**
  * Creates a Supabase client with service role for admin operations
@@ -167,4 +170,12 @@ export async function addVocabularyWord(
   } catch (error) {
     throw handleError(error)
   }
+}
+
+export const getServiceSupabase = () => {
+  if (!SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('Missing Supabase service key')
+  }
+  
+  return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 } 

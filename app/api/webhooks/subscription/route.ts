@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.text()
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
     const event = JSON.parse(body)
 
     switch (event.type) {

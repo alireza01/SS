@@ -25,7 +25,7 @@ interface UserSettings {
 }
 
 export default async function SettingsPage() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   try {
     // بررسی احراز هویت کاربر

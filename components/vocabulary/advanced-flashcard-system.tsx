@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Volume2, ArrowLeft, ArrowRight, Check, X } from 'lucide-react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -298,8 +299,19 @@ export function AdvancedFlashcardSystem({ words, userLevel, onComplete, onUpdate
           </div>
 
           <div
-            className="perspective-1000 aspect-[3/2] w-full cursor-pointer"
+            role="button"
+            tabIndex={0}
             onClick={() => setIsFlipped(!isFlipped)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setIsFlipped(!isFlipped)
+              }
+            }}
+            className={cn(
+              "relative h-64 w-full cursor-pointer rounded-xl bg-white p-6 shadow-lg transition-transform duration-500",
+              isFlipped && "rotate-y-180"
+            )}
           >
             <AnimatePresence initial={false} mode="wait">
               <motion.div

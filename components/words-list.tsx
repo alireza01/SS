@@ -21,8 +21,16 @@ export const WordsList: React.FC<WordsListProps> = ({ words, bookId, onWordSelec
       {words.map((word) => (
         <div
           key={word.id}
-          className="cursor-pointer rounded-lg bg-white p-4 shadow transition-shadow hover:shadow-md"
+          role="button"
+          tabIndex={0}
           onClick={() => onWordSelect?.(word)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              onWordSelect?.(word)
+            }
+          }}
+          className="cursor-pointer rounded-lg bg-white p-4 shadow transition-shadow hover:shadow-md"
         >
           <h3 className="text-lg font-semibold">{word.word}</h3>
           {word.meaning && (

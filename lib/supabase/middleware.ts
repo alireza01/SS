@@ -1,52 +1,31 @@
-import { cookies } from "next/headers"
-import { NextResponse, type NextRequest } from 'next/server'
-
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { type NextRequest, NextResponse } from 'next/server'
+import { type Database } from '@/types/supabase'
 
-import { SUPABASE_URL, SUPABASE_ANON_KEY, DEFAULT_COOKIE_OPTIONS, type Database } from "./config"
+export const createClient = (request: NextRequest) => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-/**
- * Creates a Supabase client for middleware with proper cookie handling
- */
-export function createMiddlewareClient(request: NextRequest) {
-  const cookieStore = cookies()
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
 
-  const supabase = createServerClient<Database>(
-    SUPABASE_URL!,
-    SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          try {
-            cookieStore.set({
-              name,
-              value,
-              ...DEFAULT_COOKIE_OPTIONS,
-              ...options,
-            })
-          } catch (error) {
-            console.warn("Failed to set cookie in middleware:", error)
-          }
-        },
-        remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({
-              name,
-              value: "",
-              ...DEFAULT_COOKIE_OPTIONS,
-              ...options,
-              maxAge: 0,
-            })
-          } catch (error) {
-            console.warn("Failed to remove cookie in middleware:", error)
-          }
-        },
+  const cookieStore = request.cookies
+  const response = NextResponse.next()
+
+  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return cookieStore.get(name)?.value
       },
-    }
-  )
-
-  return { supabase, response: NextResponse.next() }
+      set(name: string, value: string, options: CookieOptions) {
+        cookieStore.set({ name, value, ...options })
+        response.cookies.set({ name, value, ...options })
+      },
+      remove(name: string, options: CookieOptions) {
+        cookieStore.delete({ name, ...options })
+        response.cookies.delete({ name, ...options })
+      },
+    },
+  })
 } 

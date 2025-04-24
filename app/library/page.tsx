@@ -13,7 +13,7 @@ export const metadata = {
 }
 
 async function getCategories() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const { data, error } = await supabase.from("categories").select("id, name, slug").order("name")
 
@@ -26,7 +26,7 @@ async function getCategories() {
 }
 
 async function getBooks(category?: string, level?: string, search?: string) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   let query = supabase.from("books").select(`
       id, 
@@ -65,7 +65,7 @@ async function getBooks(category?: string, level?: string, search?: string) {
 }
 
 async function getUserProgress() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { data: session } = await supabase.auth.getSession()
   if (!session?.session?.user) return []
@@ -84,7 +84,7 @@ async function getUserProgress() {
 }
 
 async function getUserBookmarks() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { data: session } = await supabase.auth.getSession()
   if (!session?.session?.user) return []

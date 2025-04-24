@@ -9,7 +9,7 @@ export interface AdminAction {
 }
 
 export async function trackAdminAction(action: AdminAction) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { error } = await supabase
     .from('admin_activity_logs')
@@ -28,7 +28,7 @@ export async function trackAdminAction(action: AdminAction) {
 }
 
 export async function getAdminActivityStats(adminId: string, days: number = 30) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const startDate = new Date()
   startDate.setDate(startDate.getDate() - days)
@@ -62,7 +62,7 @@ export async function getAdminActivityStats(adminId: string, days: number = 30) 
 }
 
 export async function getSystemStats() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const now = new Date()
   const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30))

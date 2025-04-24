@@ -7,7 +7,7 @@ type EmailSettingsInsert = Database['public']['Tables']['email_settings']['Inser
 
 export async function POST(request: Request) {
   try {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
     const formData = await request.formData()
     
     const settings: Partial<EmailSettingsInsert> = {
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
     
     const { data, error } = await supabase
       .from("email_settings")

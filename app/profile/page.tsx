@@ -43,7 +43,7 @@ export const metadata = {
 export const revalidate = 0 // Disable cache for profile page
 
 async function getUserData(): Promise<UserData> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const {
     data: { user },

@@ -20,7 +20,7 @@ interface _SupabaseWordToReview {
 }
 
 export default async function ReviewPage() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   // Check authentication
   const {

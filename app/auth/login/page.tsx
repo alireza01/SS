@@ -20,7 +20,7 @@ interface LoginPageProps {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const redirectUrl = searchParams.redirect || "/dashboard"
   const errorMessage = searchParams.error
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   try {
     // بررسی احراز هویت کاربر

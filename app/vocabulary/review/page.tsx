@@ -10,7 +10,7 @@ export const metadata = {
 }
 
 async function getUserLevel() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -25,7 +25,7 @@ async function getUserLevel() {
 }
 
 async function getWordsToReview(userLevel: string) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   const { data: words } = await supabase
     .from('user_words')
     .select(`

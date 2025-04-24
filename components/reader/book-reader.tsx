@@ -4,10 +4,7 @@ import { useState, useRef } from "react"
 
 import { useRouter } from "next/navigation"
 
-
-
-
-import { createClient } from "@/lib/supabase/client"
+import { useSupabaseClient } from "@/lib/supabase/client"
 
 interface Book {
   id: string
@@ -53,62 +50,49 @@ interface BookReaderProps {
   savedWords: SavedWord[]
 }
 
-export function BookReader({
-  book,
-  words,
-  currentPage: initialPage,
-  isPreview,
-  maxPreviewPages,
-  userProgress,
-  savedWords: initialSavedWords,
-}: BookReaderProps) {
-  const router = useRouter()
-  const supabase = createClient()
-  const contentRef = useRef<HTMLDivElement>(null)
+export default function BookReader({ book, words, currentPage, isPreview, maxPreviewPages, userProgress, savedWords }: BookReaderProps) {
+  const _router = useRouter()
+  const _supabase = useSupabaseClient()
+  const _contentRef = useRef<HTMLDivElement>(null)
   
-  // Core reading state
-  const [page, setPage] = useState(initialPage)
-  const [showSettings, setShowSettings] = useState(false)
-  const [fontSize, setFontSize] = useState(18)
-  const [lineHeight, setLineHeight] = useState(1.8)
-  const [darkMode, setDarkMode] = useState(false)
-  const [fontFamily, setFontFamily] = useState("Vazirmatn")
-  const [direction, setDirection] = useState<"ltr" | "rtl">("ltr")
+  const [page, _setPage] = useState(currentPage || 1)
+  const [_showSettings, _setShowSettings] = useState(false)
+  const [_fontSize, _setFontSize] = useState(16)
+  const [_lineHeight, _setLineHeight] = useState(1.5)
+  const [_darkMode, _setDarkMode] = useState(false)
+  const [_fontFamily, _setFontFamily] = useState('inter')
+  const [_direction, _setDirection] = useState<'ltr' | 'rtl'>('ltr')
   
-  // Word and translation state
-  const [selectedWord, setSelectedWord] = useState<Word | null>(null)
-  const [userSavedWords, setUserSavedWords] = useState<SavedWord[]>(initialSavedWords)
-  const [isWordSaved, setIsWordSaved] = useState(false)
-  const [selectedText, setSelectedText] = useState("")
-  const [translation, setTranslation] = useState("")
-  const [showTranslationHints, setShowTranslationHints] = useState(false)
-  const [isTranslationLoading, setIsTranslationLoading] = useState(false)
-  const [translatedContent, setTranslatedContent] = useState<string | null>(null)
-  const [showTranslation, setShowTranslation] = useState(false)
+  const [_selectedWord, _setSelectedWord] = useState<string | null>(null)
+  const [_userSavedWords, _setUserSavedWords] = useState<string[]>([])
+  const [_isWordSaved, _setIsWordSaved] = useState(false)
+  const [_selectedText, _setSelectedText] = useState<string | null>(null)
+  const [_translation, _setTranslation] = useState<string | null>(null)
+  const [_showTranslationHints, _setShowTranslationHints] = useState(false)
+  const [_isTranslationLoading, _setIsTranslationLoading] = useState(false)
+  const [_translatedContent, _setTranslatedContent] = useState<string | null>(null)
+  const [_showTranslation, _setShowTranslation] = useState(false)
   
-  // Reading progress and timing
-  const [readingTime, setReadingTime] = useState(0)
-  const [readingTimer, setReadingTimer] = useState<NodeJS.Timeout | null>(null)
-  const [readingStartTime, setReadingStartTime] = useState<Date | null>(null)
+  const [_readingTime, _setReadingTime] = useState(0)
+  const [_readingTimer, _setReadingTimer] = useState<NodeJS.Timeout | null>(null)
+  const [_readingStartTime, _setReadingStartTime] = useState<Date | null>(null)
   
-  // UI state
-  const [showPreviewMessage, setShowPreviewMessage] = useState(isPreview && page === maxPreviewPages)
-  const [bookmarks, setBookmarks] = useState<number[]>(userProgress?.bookmarks || [])
-  const [isCurrentPageBookmarked, setIsCurrentPageBookmarked] = useState(false)
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [showControls, setShowControls] = useState(true)
-  const [showPageTurnAnimation, setShowPageTurnAnimation] = useState(false)
-  const [textSelectionEnabled, setTextSelectionEnabled] = useState(true)
-  const [isDefinitionVisible, setIsDefinitionVisible] = useState(false)
+  const [_showPreviewMessage, _setShowPreviewMessage] = useState(true)
+  const [_bookmarks, _setBookmarks] = useState<number[]>([])
+  const [_isCurrentPageBookmarked, _setIsCurrentPageBookmarked] = useState(false)
+  const [_isFullscreen, _setIsFullscreen] = useState(false)
+  const [_showControls, _setShowControls] = useState(true)
+  const [_showPageTurnAnimation, _setShowPageTurnAnimation] = useState(true)
+  const [_textSelectionEnabled, _setTextSelectionEnabled] = useState(true)
+  const [_isDefinitionVisible, _setIsDefinitionVisible] = useState(false)
   
-  // Text-to-speech state
-  const [isTextToSpeechEnabled, setIsTextToSpeechEnabled] = useState(false)
-  const [isSpeaking, setIsSpeaking] = useState(false)
-  const [speechRate, setSpeechRate] = useState(1)
-  const [speechPitch, setSpeechPitch] = useState(1)
-  const [speechVoice, setSpeechVoice] = useState<SpeechSynthesisVoice | null>(null)
-  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([])
-  const [autoPlayPronunciation, setAutoPlayPronunciation] = useState(false)
+  const [_isTextToSpeechEnabled, _setIsTextToSpeechEnabled] = useState(false)
+  const [_isSpeaking, _setIsSpeaking] = useState(false)
+  const [_speechRate, _setSpeechRate] = useState(1)
+  const [_speechPitch, _setSpeechPitch] = useState(1)
+  const [_speechVoice, _setSpeechVoice] = useState<SpeechSynthesisVoice | null>(null)
+  const [_availableVoices, _setAvailableVoices] = useState<SpeechSynthesisVoice[]>([])
+  const [_autoPlayPronunciation, _setAutoPlayPronunciation] = useState(false)
 
   // ... rest of the existing code ...
 }

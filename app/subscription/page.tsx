@@ -4,7 +4,7 @@ import { SubscriptionClient } from "@/components/subscription/subscription-clien
 import { createServerClient } from "@/lib/supabase/app-server"
 
 export default async function SubscriptionPage() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   // بررسی احراز هویت کاربر
   const {

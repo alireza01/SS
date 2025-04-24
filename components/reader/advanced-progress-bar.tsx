@@ -76,7 +76,18 @@ export function AdvancedProgressBar({
       ))}
 
       <div className="relative w-full max-w-md">
-        <div className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => onPageSelect(currentPage)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              onPageSelect(currentPage)
+            }
+          }}
+          className="relative h-2 w-full cursor-pointer rounded-full bg-gray-200 dark:bg-gray-700"
+        >
           <div
             className="bg-gold-500 h-full rounded-full transition-all duration-300 ease-in-out"
             style={{ width: `${progressPercentage}%` }}
