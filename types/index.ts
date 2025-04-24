@@ -1,10 +1,13 @@
-import { READING_LEVELS, AI_MODELS } from "@/lib/constants"
-import { Database } from './supabase'
+import type { READING_LEVELS, AI_MODELS } from "@/lib/constants"
+
+import type { Profile } from './profile'
+import type { Database } from './supabase'
+
 
 export type ReadingLevel = keyof typeof READING_LEVELS
 export type AIModel = keyof typeof AI_MODELS
 
-export type { Database }
+export type { Database, Profile }
 
 export interface Question {
   id: string

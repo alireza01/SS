@@ -22,8 +22,6 @@
       "@/*": ["./*"]
     },
     "types": [
-      "react",
-      "react-dom",
       "node",
       "./types/global.d.ts",
       "@types/recharts",
@@ -37,10 +35,10 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
     "types/**/*.d.ts",
-    "components/ui/**/*.ts",
-    "components/ui/**/*.tsx"
+    "components/**/*.tsx",
+    "lib/**/*.ts",
+    ".next/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

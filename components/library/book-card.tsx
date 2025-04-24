@@ -141,7 +141,7 @@ export function BookCard({
         {book.isPremium && (
           <Badge
             variant="gold"
-            className="absolute right-2 top-2 bg-gradient-to-r from-amber-500 to-yellow-400 border-none text-white"
+            className="absolute right-2 top-2 border-none bg-gradient-to-r from-amber-500 to-yellow-400 text-white"
           >
             ویژه
           </Badge>

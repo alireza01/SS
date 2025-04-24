@@ -1,6 +1,8 @@
 import { useState } from "react"
-import { toast } from "sonner"
+
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { toast } from "sonner"
+
 import type { Database } from '@/types/supabase'
 
 interface UseNewsletterReturn {

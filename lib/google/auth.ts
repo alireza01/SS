@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/client"
-import { Provider } from "@supabase/supabase-js"
+
+import type { Provider } from "@supabase/supabase-js"
+
 
 // Google Auth Configuration
 export const googleAuthConfig = {

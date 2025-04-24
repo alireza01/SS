@@ -24,8 +24,28 @@ async function getUserLevel() {
   return data?.level || "beginner"
 }
 
+async function getWordsToReview(userLevel: string) {
+  const supabase = createServerClient()
+  const { data: words } = await supabase
+    .from('user_words')
+    .select(`
+      *,
+      books:book_id (
+        id,
+        title,
+        slug
+      )
+    `)
+    .eq('level', userLevel)
+    .order('nextReviewAt', { ascending: true })
+    .limit(10)
+
+  return words || []
+}
+
 export default async function VocabularyReviewPage() {
   const userLevel = await getUserLevel()
+  const words = await getWordsToReview(userLevel)
 
   return (
     <div className="container py-8">
@@ -38,7 +58,7 @@ export default async function VocabularyReviewPage() {
         </div>
 
         <Suspense fallback={<FlashcardSkeleton />}>
-          <FlashcardSystem userLevel={userLevel} />
+          <FlashcardSystem words={words} />
         </Suspense>
       </div>
     </div>

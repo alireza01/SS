@@ -1,12 +1,28 @@
-import { redirect } from "next/navigation"
+import { redirect, notFound } from "next/navigation"
 
 import { ReviewClient } from "@/components/review/review-client"
 import { createServerClient } from "@/lib/supabase/app-server"
+import type { WordToReview, WordStats, Book, WordLevel, WordStatus } from "@/types/vocabulary"
+
+interface SupabaseWordToReview {
+  id: string;
+  word: string;
+  meaning: string | null;
+  example: string | null;
+  level: string;
+  status: string;
+  nextReviewAt: string | null;
+  books: {
+    id: string;
+    title: string;
+    slug: string;
+  }[] | null;
+}
 
 export default async function ReviewPage() {
   const supabase = createServerClient()
 
-  // بررسی احراز هویت کاربر
+  // Check authentication
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -15,9 +31,9 @@ export default async function ReviewPage() {
     redirect("/auth/login?redirect=/review")
   }
 
-  // دریافت واژگان نیازمند مرور
+  // Fetch words that need review
   const today = new Date().toISOString()
-  const { data: wordsToReview } = await supabase
+  const { data: wordsToReview, error: wordsError } = await supabase
     .from("user_words")
     .select(`
       id,
@@ -27,9 +43,10 @@ export default async function ReviewPage() {
       level,
       status,
       nextReviewAt,
-      books (
+      books:book_id (
         id,
-        title
+        title,
+        slug
       )
     `)
     .eq("userId", session.user.id)
@@ -37,8 +54,61 @@ export default async function ReviewPage() {
     .order("status", { ascending: true })
     .limit(20)
 
-  // دریافت آمار واژگان کاربر
-  const { data: wordStats } = await supabase.from("user_words_stats").select("*").eq("userId", session.user.id).single()
+  if (wordsError) {
+    console.error("Error fetching words to review:", wordsError)
+    notFound()
+  }
 
-  return <ReviewClient wordsToReview={wordsToReview || []} wordStats={wordStats || null} />
+  // Fetch user's word stats
+  const { data: wordStats, error: statsError } = await supabase
+    .from("user_words_stats")
+    .select("*")
+    .eq("userId", session.user.id)
+    .single()
+
+  if (statsError) {
+    console.error("Error fetching word stats:", statsError)
+    notFound()
+  }
+
+  // Transform and validate the data
+  const transformedWords = (wordsToReview || []).map((word): WordToReview => {
+    // Validate level and status
+    const level = ['beginner', 'intermediate', 'advanced'].includes(word.level) 
+      ? word.level as WordLevel
+      : 'beginner' as WordLevel
+    
+    const status = ['new', 'learning', 'known'].includes(word.status)
+      ? word.status as WordStatus
+      : 'new' as WordStatus
+
+    // Create a Book object from the first book in the array
+    const book: Book | null = word.books?.[0] ? {
+      id: word.books[0].id,
+      title: word.books[0].title,
+      slug: word.books[0].slug
+    } : null
+
+    // Return the WordToReview object with the correct structure
+    return {
+      id: word.id,
+      word: word.word,
+      meaning: word.meaning || '',
+      example: word.example || '',
+      level,
+      status,
+      nextReviewAt: word.nextReviewAt || '',
+      userId: session.user.id,
+      books: book
+    }
+  })
+
+  return (
+    <div className="container max-w-4xl py-8">
+      <ReviewClient 
+        wordsToReview={transformedWords} 
+        wordStats={wordStats as WordStats} 
+      />
+    </div>
+  )
 }

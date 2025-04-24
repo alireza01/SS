@@ -49,7 +49,7 @@ type UserProgressResponse = {
 }[]
 
 export async function CurrentlyReading({ userId }: CurrentlyReadingProps) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   // دریافت کتاب‌های در حال مطالعه کاربر
   const { data: userProgress } = await supabase

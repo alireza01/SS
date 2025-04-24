@@ -4,14 +4,26 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { createServerClient } from "@/lib/supabase/app-server"
+import type { Database } from "@/types/supabase"
+
+type DbSettings = Database["public"]["Tables"]["settings"]["Row"]
 
 export default async function SettingsPage() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
-  const { data: settings } = await supabase
-    .from("site_settings")
-    .select("*")
+  const { data: settings, error } = await supabase
+    .from("settings")
+    .select<string, DbSettings>()
     .single()
+
+  if (error) {
+    console.error("Error fetching settings:", error)
+    return <div className="text-red-500">Failed to load settings</div>
+  }
+
+  if (!settings) {
+    return <div className="text-muted-foreground">No settings found</div>
+  }
 
   return (
     <div className="space-y-6">
@@ -20,7 +32,7 @@ export default async function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>تنظیمات عمومی</CardTitle>
-          <CardDescription>تنظیمات پایه‌ای سایت را در اینجا مدیریت کنید</CardDescription>
+          <CardDescription>تنظیمات کلی سایت</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <form action="/api/admin/settings" method="POST" className="space-y-4">
@@ -29,7 +41,7 @@ export default async function SettingsPage() {
               <Input 
                 id="site-name" 
                 name="siteName" 
-                defaultValue={settings?.site_name || "کتاب‌یار"} 
+                defaultValue={settings.site_name || "کتاب‌یار"} 
               />
             </div>
 
@@ -38,7 +50,7 @@ export default async function SettingsPage() {
               <Input 
                 id="site-description" 
                 name="siteDescription"
-                defaultValue={settings?.site_description || "پلتفرم آموزش زبان از طریق مطالعه"}
+                defaultValue={settings.site_description || "پلتفرم آموزش زبان از طریق مطالعه"}
               />
             </div>
 
@@ -52,7 +64,7 @@ export default async function SettingsPage() {
               <Switch 
                 id="registration" 
                 name="allowRegistration"
-                defaultChecked={settings?.allow_registration}
+                defaultChecked={settings.allow_registration}
               />
             </div>
 
@@ -66,7 +78,7 @@ export default async function SettingsPage() {
               <Switch 
                 id="maintenance" 
                 name="maintenanceMode"
-                defaultChecked={settings?.maintenance_mode}
+                defaultChecked={settings.maintenance_mode}
               />
             </div>
 
@@ -89,7 +101,7 @@ export default async function SettingsPage() {
               <Input 
                 id="smtp-host" 
                 name="smtpHost"
-                defaultValue={settings?.smtp_host} 
+                defaultValue={settings.smtp_host || ""} 
               />
             </div>
 
@@ -99,7 +111,7 @@ export default async function SettingsPage() {
                 id="smtp-port" 
                 name="smtpPort"
                 type="number"
-                defaultValue={settings?.smtp_port || 587} 
+                defaultValue={settings.smtp_port || 587} 
               />
             </div>
 
@@ -108,7 +120,7 @@ export default async function SettingsPage() {
               <Input 
                 id="smtp-user" 
                 name="smtpUsername"
-                defaultValue={settings?.smtp_username} 
+                defaultValue={settings.smtp_username || ""} 
               />
             </div>
 

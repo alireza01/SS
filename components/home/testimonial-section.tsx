@@ -1,12 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
+
 import Image from "next/image"
+
 import { motion } from "framer-motion"
-import { Card, CardContent } from "@/components/ui/card"
+
 import { Button } from "@/components/ui/button"
-import { createClient } from "@/lib/supabase/client"
+import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { createClient } from "@/lib/supabase/client"
 
 interface Testimonial {
   id: string
@@ -54,12 +57,12 @@ export function TestimonialSection() {
 
   if (isLoading) {
     return (
-      <div className="py-16 px-4">
+      <div className="px-4 py-16">
         <div className="container mx-auto">
-          <Card className="border-gold-200 dark:border-gray-800 shadow-lg">
+          <Card className="border-gold-200 shadow-lg dark:border-gray-800">
             <CardContent className="p-8">
-              <div className="flex flex-col md:flex-row gap-6 items-center">
-                <Skeleton className="w-24 h-24 rounded-full" />
+              <div className="flex flex-col items-center gap-6 md:flex-row">
+                <Skeleton className="size-24 rounded-full" />
                 <div className="flex-1 space-y-4">
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-4 w-1/2" />
@@ -79,16 +82,16 @@ export function TestimonialSection() {
   }
 
   return (
-    <div className="py-16 px-4">
+    <div className="px-4 py-16">
       <div className="container mx-auto">
-        <div className="text-center mb-12">
+        <div className="mb-12 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-3xl font-bold mb-4">نظرات کاربران</h2>
+            <h2 className="mb-4 text-3xl font-bold">نظرات کاربران</h2>
             <p className="text-muted-foreground">آنچه کاربران درباره کتاب‌یار می‌گویند</p>
           </motion.div>
         </div>
@@ -100,11 +103,11 @@ export function TestimonialSection() {
           transition={{ duration: 0.5 }}
           className="relative"
         >
-          <Card className="border-gold-200 dark:border-gray-800 shadow-lg">
+          <Card className="border-gold-200 shadow-lg dark:border-gray-800">
             <CardContent className="p-8">
-              <div className="flex flex-col md:flex-row gap-6 items-center">
-                <div className="flex-shrink-0">
-                  <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-gold-100 dark:border-gold-900">
+              <div className="flex flex-col items-center gap-6 md:flex-row">
+                <div className="shrink-0">
+                  <div className="border-gold-100 dark:border-gold-900 relative size-24 overflow-hidden rounded-full border-4">
                     <Image
                       src={testimonials[activeIndex].avatar_url || "/images/default-avatar.svg"}
                       alt={testimonials[activeIndex].name}
@@ -115,16 +118,16 @@ export function TestimonialSection() {
                 </div>
                 <div className="flex-1 text-center md:text-right">
                   <svg
-                    className="w-10 h-10 text-gold-300 dark:text-gold-700 mb-4 mx-auto md:mr-0"
+                    className="text-gold-300 dark:text-gold-700 mx-auto mb-4 size-10 md:mr-0"
                     fill="currentColor"
                     viewBox="0 0 32 32"
                     aria-hidden="true"
                   >
                     <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
                   </svg>
-                  <p className="text-lg mb-6">{testimonials[activeIndex].content}</p>
+                  <p className="mb-6 text-lg">{testimonials[activeIndex].content}</p>
                   <div>
-                    <h4 className="font-bold text-xl">{testimonials[activeIndex].name}</h4>
+                    <h4 className="text-xl font-bold">{testimonials[activeIndex].name}</h4>
                     <p className="text-muted-foreground">{testimonials[activeIndex].role}</p>
                   </div>
                 </div>
@@ -132,15 +135,15 @@ export function TestimonialSection() {
             </CardContent>
           </Card>
 
-          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+          <div className="absolute -bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
             <Button
               variant="outline"
               size="icon"
               onClick={prevTestimonial}
-              className="rounded-full bg-background"
+              className="bg-background rounded-full"
             >
               <span className="sr-only">Previous testimonial</span>
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Button>
@@ -148,10 +151,10 @@ export function TestimonialSection() {
               variant="outline"
               size="icon"
               onClick={nextTestimonial}
-              className="rounded-full bg-background"
+              className="bg-background rounded-full"
             >
               <span className="sr-only">Next testimonial</span>
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </Button>

@@ -1,18 +1,34 @@
 import { Suspense } from 'react';
 
-
+import type { Database } from '@/app/types/database.types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import AddWordForm from '@/components/vocabulary/add-word-form';
 import WordList from '@/components/vocabulary/word-list';
-import { createServerClient } from '@/lib/supabase/app-server';
+import { createServerClient } from '@/lib/supabase/server';
 
-async function getVocabulary() {
-  const supabase = createServerClient();
+type Word = Database['public']['Tables']['vocabulary']['Row'] & {
+  books: {
+    id: string;
+    title: string;
+    slug: string;
+  } | null;
+};
+
+async function getVocabulary(userId: string) {
+  const supabase = await createServerClient();
 
   const { data: vocabulary, error } = await supabase
     .from('vocabulary')
-    .select('*')
+    .select(`
+      *,
+      books:book_id (
+        id,
+        title,
+        slug
+      )
+    `)
+    .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -20,11 +36,11 @@ async function getVocabulary() {
     return [];
   }
 
-  return vocabulary;
+  return vocabulary as Word[];
 }
 
 async function getUserId() {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   
   const { data: { session }, error } = await supabase.auth.getSession();
   
@@ -37,7 +53,7 @@ async function getUserId() {
 }
 
 export default async function VocabularyPage() {
-  const [words, userId] = await Promise.all([getVocabulary(), getUserId()]);
+  const userId = await getUserId();
 
   if (!userId) {
     return (
@@ -52,6 +68,8 @@ export default async function VocabularyPage() {
     );
   }
 
+  const words = await getVocabulary(userId);
+
   return (
     <Card>
       <CardHeader>
@@ -64,8 +82,7 @@ export default async function VocabularyPage() {
         <Suspense fallback={<Skeleton className="h-96" />}>
           <WordList 
             words={words} 
-            onEdit={(word) => {}} 
-            onDelete={(id) => {}} 
+            userId={userId}
           />
         </Suspense>
       </CardContent>

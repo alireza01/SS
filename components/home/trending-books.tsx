@@ -1,15 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
+
 import Image from "next/image"
+import Link from "next/link"
+
 import { motion } from "framer-motion"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Card, CardContent } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/client"
-import { Skeleton } from "@/components/ui/skeleton"
 
 interface Book {
   id: string
@@ -75,12 +75,12 @@ export function TrendingBooks() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
         {[...Array(8)].map((_, index) => (
           <div key={index} className="animate-pulse">
-            <div className="aspect-[2/3] bg-muted rounded-lg mb-2"></div>
-            <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-            <div className="h-3 bg-muted rounded w-1/2"></div>
+            <div className="bg-muted mb-2 aspect-[2/3] rounded-lg"></div>
+            <div className="bg-muted mb-2 h-4 w-3/4 rounded"></div>
+            <div className="bg-muted h-3 w-1/2 rounded"></div>
           </div>
         ))}
       </div>
@@ -88,7 +88,7 @@ export function TrendingBooks() {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
       {books.map((book, index) => (
         <motion.div
           key={book.id}
@@ -98,9 +98,9 @@ export function TrendingBooks() {
           className="group"
         >
           <Link href={`/books/${book.slug}`}>
-            <Card className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300">
+            <Card className="overflow-hidden border-none shadow-lg transition-all duration-300 hover:shadow-xl">
               <CardContent className="p-0">
-                <div className="aspect-[2/3] relative">
+                <div className="relative aspect-[2/3]">
                   <Image
                     src={book.coverImage || "/images/book-placeholder.jpg"}
                     alt={book.title}
@@ -109,10 +109,10 @@ export function TrendingBooks() {
                   />
                 </div>
                 <div className="p-4">
-                  <h3 className="font-medium mb-1 line-clamp-1 group-hover:text-primary transition-colors">
+                  <h3 className="group-hover:text-primary mb-1 line-clamp-1 font-medium transition-colors">
                     {book.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground mb-2">{book.author}</p>
+                  <p className="text-muted-foreground mb-2 text-sm">{book.author}</p>
                   <Badge variant="secondary" className={getLevelColor(book.level)}>
                     {getLevelText(book.level)}
                   </Badge>

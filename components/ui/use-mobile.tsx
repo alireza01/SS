@@ -1,19 +1,42 @@
 import * as React from "react"
 
-const MOBILE_BREAKPOINT = 768
+type Breakpoint = "sm" | "md" | "lg" | "xl" | "2xl"
 
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+const BREAKPOINTS: Record<Breakpoint, number> = {
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+  "2xl": 1536,
+}
+
+interface UseBreakpointOptions {
+  breakpoint?: Breakpoint
+  defaultValue?: boolean
+}
+
+export function useIsMobile(options: UseBreakpointOptions = {}) {
+  const { breakpoint = "md", defaultValue = false } = options
+  const [isMobile, setIsMobile] = React.useState<boolean>(defaultValue)
+  const [isClient, setIsClient] = React.useState(false)
 
   React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+    setIsClient(true)
+    const mql = window.matchMedia(`(max-width: ${BREAKPOINTS[breakpoint] - 1}px)`)
+    
     const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+      setIsMobile(mql.matches)
     }
-    mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    return () => mql.removeEventListener("change", onChange)
-  }, [])
 
-  return !!isMobile
+    mql.addEventListener("change", onChange)
+    setIsMobile(mql.matches)
+
+    return () => mql.removeEventListener("change", onChange)
+  }, [breakpoint])
+
+  return isClient ? isMobile : defaultValue
+}
+
+export function useIsBreakpoint(breakpoint: Breakpoint, defaultValue = false) {
+  return useIsMobile({ breakpoint, defaultValue })
 }

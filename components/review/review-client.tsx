@@ -13,31 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { createClient } from "@/lib/supabase/client"
-
-
-interface WordToReview {
-  id: string
-  word: string
-  meaning: string
-  example: string | null
-  level: string
-  status: string
-  nextReviewAt: string | null
-  books: {
-    id: string
-    title: string
-    slug: string
-  } | null
-}
-
-interface WordStats {
-  id: string
-  userId: string
-  totalWords: number
-  learningWords: number
-  knownWords: number
-  reviewStreak: number
-}
+import type { WordToReview, WordStats } from "@/types/vocabulary"
 
 interface ReviewClientProps {
   wordsToReview: WordToReview[]
@@ -88,106 +64,6 @@ export function ReviewClient({ wordsToReview, wordStats }: ReviewClientProps) {
     }
   }
 
-  // مدیریت پاسخ کاربر (می‌دانستم یا نمی‌دانستم)
-  const handleResponse = async (knew: boolean) => {
-    if (currentIndex >= wordsToReview.length) return
-    setIsLoading(true)
-
-    const currentWord = wordsToReview[currentIndex]
-    try {
-      // محاسبه تاریخ مرور بعدی بر اساس الگوریتم فاصله‌گذاری زمانی
-      const nextReviewDate = new Date()
-      let newStatus = currentWord.status
-      let daysToAdd = 1
-
-      if (knew) {
-        // اگر کاربر کلمه را می‌دانست
-        if (currentWord.status === "new") {
-          newStatus = "learning"
-          daysToAdd = 1
-          setReviewResults((prev: ReviewResults) => ({ ...prev, learning: prev.learning + 1 }))
-        } else if (currentWord.status === "learning") {
-          const reviewCount = await getReviewCount(currentWord.id)
-          if (reviewCount >= 3) {
-            newStatus = "known"
-            daysToAdd = 7
-            setReviewResults((prev: ReviewResults) => ({ ...prev, known: prev.known + 1 }))
-          } else {
-            daysToAdd = 3
-            setReviewResults((prev: ReviewResults) => ({ ...prev, learning: prev.learning + 1 }))
-          }
-        } else if (currentWord.status === "known") {
-          daysToAdd = 14
-          setReviewResults((prev: ReviewResults) => ({ ...prev, known: prev.known + 1 }))
-        }
-      } else {
-        // اگر کاربر کلمه را نمی‌دانست
-        if (currentWord.status === "known") {
-          newStatus = "learning"
-        }
-        daysToAdd = 1
-        setReviewResults((prev: ReviewResults) => ({ ...prev, learning: prev.learning + 1 }))
-      }
-
-      nextReviewDate.setDate(nextReviewDate.getDate() + daysToAdd)
-
-      // به‌روزرسانی وضعیت کلمه در دیتابیس
-      const { error } = await supabase
-        .from("user_words")
-        .update({
-          status: newStatus,
-          nextReviewAt: nextReviewDate.toISOString(),
-          updatedAt: new Date().toISOString(),
-        })
-        .eq("id", currentWord.id)
-
-      if (error) {
-        throw error
-      }
-
-      // به‌روزرسانی آمار واژگان اگر وضعیت تغییر کرده باشد
-      if (newStatus !== currentWord.status) {
-        const { data: userData } = await supabase.auth.getUser()
-        if (!userData.user) return
-
-        const { error: statsError } = await supabase.rpc("update_word_stats_on_status_change", {
-          user_id_param: userData.user.id,
-          old_status: currentWord.status,
-          new_status: newStatus
-        })
-
-        if (statsError) {
-          console.error("خطا در به‌روزرسانی آمار واژگان:", statsError)
-        }
-
-        // به‌روزرسانی آمار مرور
-        const { error: reviewStatsError } = await supabase.rpc("update_review_streak", {
-          user_id_param: userData.user.id
-        })
-        
-        if (reviewStatsError) {
-          console.error("خطا در به‌روزرسانی آمار مرور:", reviewStatsError)
-        }
-      }
-
-      // به‌روزرسانی لیست کلمات مرور شده
-      setReviewedWords((prev) => [...prev, currentWord.id])
-
-      // رفتن به کلمه بعدی
-      if (currentIndex < wordsToReview.length - 1) {
-        setCurrentIndex(currentIndex + 1)
-        setShowMeaning(false)
-      } else {
-        setIsCompleted(true)
-      }
-    } catch (error) {
-      console.error("خطا در به‌روزرسانی وضعیت کلمه:", error)
-      toast.error("خطا در به‌روزرسانی وضعیت کلمه")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   // دریافت تعداد دفعات مرور یک کلمه
   const getReviewCount = async (wordId: string) => {
     try {
@@ -201,6 +77,121 @@ export function ReviewClient({ wordsToReview, wordStats }: ReviewClientProps) {
     } catch (error) {
       console.error("خطا در دریافت تعداد مرور:", error)
       return 0
+    }
+  }
+
+  // ثبت مرور کلمه در جدول word_reviews
+  const trackWordReview = async (wordId: string, knew: boolean) => {
+    try {
+      const { data: userData } = await supabase.auth.getUser()
+      if (!userData.user) return
+
+      const { error } = await supabase.from("word_reviews").insert({
+        wordId: wordId,
+        userId: userData.user.id,
+        knewWord: knew,
+        reviewDate: new Date().toISOString()
+      })
+
+      if (error) {
+        console.error("خطا در ثبت مرور کلمه:", error)
+      }
+    } catch (error) {
+      console.error("خطا در ثبت مرور کلمه:", error)
+    }
+  }
+
+  // مدیریت پاسخ کاربر (می‌دانستم یا نمی‌دانستم)
+  const handleResponse = async (knew: boolean) => {
+    if (currentIndex >= wordsToReview.length) return
+    setIsLoading(true)
+
+    const currentWord = wordsToReview[currentIndex]
+    try {
+      await trackWordReview(currentWord.id, knew)
+
+      const nextReviewDate = new Date()
+      let newStatus = currentWord.status
+      let daysToAdd = 1
+
+      if (knew) {
+        if (currentWord.status === 'new') {
+          newStatus = 'learning'
+          daysToAdd = 1
+          setReviewResults(prev => ({ ...prev, learning: prev.learning + 1 }))
+        } else if (currentWord.status === 'learning') {
+          const reviewCount = await getReviewCount(currentWord.id)
+          if (reviewCount >= 3) {
+            newStatus = 'known'
+            daysToAdd = 7
+            setReviewResults(prev => ({ ...prev, known: prev.known + 1 }))
+          } else {
+            daysToAdd = 3
+            setReviewResults(prev => ({ ...prev, learning: prev.learning + 1 }))
+          }
+        } else if (currentWord.status === 'known') {
+          daysToAdd = 14
+          setReviewResults(prev => ({ ...prev, known: prev.known + 1 }))
+        }
+      } else {
+        if (currentWord.status === 'known') {
+          newStatus = 'learning'
+        }
+        daysToAdd = 1
+        setReviewResults(prev => ({ ...prev, learning: prev.learning + 1 }))
+      }
+
+      nextReviewDate.setDate(nextReviewDate.getDate() + daysToAdd)
+
+      const { error } = await supabase
+        .from("user_words")
+        .update({
+          status: newStatus,
+          nextReviewAt: nextReviewDate.toISOString(),
+          updatedAt: new Date().toISOString(),
+        })
+        .eq("id", currentWord.id)
+
+      if (error) {
+        throw error
+      }
+
+      if (newStatus !== currentWord.status) {
+        const { data: userData } = await supabase.auth.getUser()
+        if (!userData.user) return
+
+        const { error: statsError } = await supabase.rpc("update_word_stats_on_status_change", {
+          user_id_param: userData.user.id,
+          old_status: currentWord.status,
+          new_status: newStatus
+        })
+
+        if (statsError) {
+          console.error("Error updating word stats:", statsError)
+        }
+
+        const { error: reviewStatsError } = await supabase.rpc("update_review_streak", {
+          user_id_param: userData.user.id
+        })
+        
+        if (reviewStatsError) {
+          console.error("Error updating review streak:", reviewStatsError)
+        }
+      }
+
+      setReviewedWords(prev => [...prev, currentWord.id])
+
+      if (currentIndex < wordsToReview.length - 1) {
+        setCurrentIndex(currentIndex + 1)
+        setShowMeaning(false)
+      } else {
+        setIsCompleted(true)
+      }
+    } catch (error) {
+      console.error("Error updating word status:", error)
+      toast.error("Error updating word status")
+    } finally {
+      setIsLoading(false)
     }
   }
 

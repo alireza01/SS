@@ -1,30 +1,25 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-import { ArrowLeft, Settings, Bookmark, BookMarked } from "lucide-react"
-import { toast } from "sonner"
+import { ArrowLeft, Bookmark, BookMarked, Settings } from "lucide-react"
 
-import { TextSelectionHandler } from "@/components/books/text-selection-handler"
-import { WordTooltip, type Word as TooltipWord } from "@/components/books/word-tooltip"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { saveReadingProgress } from "@/lib/actions/progress-actions"
+import { toast } from "@/components/ui/use-toast"
+import { usePageFlipSettings } from "@/lib/hooks/use-page-flip-settings"
 import { createClient } from "@/lib/supabase/client"
 
+import { TextSelectionHandler } from "../text-selection-handler"
 import { InteractiveBook } from "./interactive-book"
 
 interface Book {
   id: string
-  title: string
-  author: string
-  coverImage: string | null
-  totalPages: number
-  isPremium: boolean
   slug: string
+  title: string
 }
 
 interface BookReaderWithFlipProps {
@@ -35,6 +30,7 @@ interface BookReaderWithFlipProps {
   maxPreviewPages?: number
   userProgress?: { currentPage: number; lastReadAt: string } | null
   isLoggedIn: boolean
+  userId?: string
   interactiveFlipEnabled?: boolean
 }
 
@@ -44,66 +40,60 @@ export function BookReaderWithFlip({
   currentPage,
   isPreview = false,
   maxPreviewPages = 5,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   userProgress,
   isLoggedIn,
-  interactiveFlipEnabled = true,
+  userId,
+  interactiveFlipEnabled,
 }: BookReaderWithFlipProps) {
   const router = useRouter()
-  const supabase = createClient()
   const [page, setPage] = useState(currentPage)
-  const [showSettings, setShowSettings] = useState(false)
   const [isBookmarked, setIsBookmarked] = useState(false)
-  const [selectedWord, setSelectedWord] = useState<TooltipWord | null>(null)
-  const [isWordSaved, setIsWordSaved] = useState(false)
-  const [readingTime, setReadingTime] = useState(0)
-  const [readingStartTime] = useState<Date>(new Date())
+  const [showSettings, setShowSettings] = useState(false)
+  const supabase = createClient()
+  const { settings } = usePageFlipSettings(userId)
 
-  // Format content for the interactive book
+  // Format pages for the interactive book component
   const formattedPages = contents.map((content) => ({
     id: `page-${content.page}`,
     content: processPageContent(content.content),
     pageNumber: content.page,
   }))
 
-  // Update reading time
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date()
-      const elapsed = Math.floor((now.getTime() - readingStartTime.getTime()) / 1000)
-      setReadingTime(elapsed)
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [readingStartTime])
-
   // Handle page change
-  const handlePageChange = (newPage: number) => {
-    if (isPreview && newPage > maxPreviewPages) {
-      toast.info("برای مطالعه بیشتر، لطفاً کتاب را خریداری کنید")
-      return
-    }
-
+  const handlePageChange = async (newPage: number) => {
     setPage(newPage)
 
-    // Update URL
-    const params = new URLSearchParams(window.location.search)
-    params.set("page", newPage.toString())
-    if (isPreview) {
-      params.set("preview", "true")
-    }
-    router.replace(`/books/${book.slug}/read?${params.toString()}`)
+    // Update URL without reloading
+    const url = new URL(window.location.href)
+    url.searchParams.set("page", newPage.toString())
+    router.replace(url.pathname + url.search)
 
-    // Save reading progress
-    if (isLoggedIn) {
-      saveReadingProgress(book.id, newPage, readingTime)
+    if (!isLoggedIn) return
+
+    try {
+      const { data: userData } = await supabase.auth.getUser()
+      if (!userData.user) return
+
+      // Update reading progress
+      await supabase.from("reading_progress").upsert({
+        user_id: userData.user.id,
+        book_id: book.id,
+        current_page: newPage,
+        last_read_at: new Date().toISOString(),
+      })
+    } catch (error) {
+      console.error("Error updating reading progress:", error)
     }
   }
 
   // Toggle bookmark
   const toggleBookmark = async () => {
     if (!isLoggedIn) {
-      toast.error("لطفاً ابتدا وارد حساب کاربری خود شوید")
+      toast({
+        title: "خطا",
+        description: "لطفاً ابتدا وارد حساب کاربری خود شوید",
+        variant: "destructive",
+      })
       return
     }
 
@@ -120,7 +110,10 @@ export function BookReaderWithFlip({
           .eq("book_id", book.id)
           .eq("page", page)
         setIsBookmarked(false)
-        toast.success("نشانک حذف شد")
+        toast({
+          title: "موفقیت",
+          description: "نشانک حذف شد",
+        })
       } else {
         // Add bookmark
         await supabase.from("bookmarks").insert({
@@ -130,37 +123,47 @@ export function BookReaderWithFlip({
           created_at: new Date().toISOString(),
         })
         setIsBookmarked(true)
-        toast.success("نشانک اضافه شد")
+        toast({
+          title: "موفقیت",
+          description: "نشانک اضافه شد",
+        })
       }
     } catch (error) {
       console.error("خطا در تغییر وضعیت نشانک:", error)
-      toast.error("خطا در تغییر وضعیت نشانک")
+      toast({
+        title: "خطا",
+        description: "خطا در تغییر وضعیت نشانک",
+        variant: "destructive",
+      })
     }
   }
 
   // Process page content to highlight difficult words
   function processPageContent(content: string): string {
     // Remove any existing HTML tags for safety
-    const sanitizedContent = content.replace(/<[^>]*>/g, '')
-    
+    const sanitizedContent = content.replace(/<[^>]*>/g, "")
+
     // Split content into words while preserving punctuation and spacing
     const words = sanitizedContent.split(/(\s+)/)
-    
+
     // Process each word
-    const processedWords = words.map(word => {
+    const processedWords = words.map((word) => {
       // Skip whitespace
       if (/^\s+$/.test(word)) return word
-      
+
       // Add data attributes for interactive features
       return `<span class="interactive-word" data-word="${word.trim()}">${word}</span>`
     })
-    
-    return processedWords.join('')
+
+    return processedWords.join("")
   }
 
   // Handle text selection for translation
   const handleTranslateSelection = (_text: string) => {
-    toast.success("متن انتخاب شده برای ترجمه ارسال شد")
+    toast({
+      title: "موفقیت",
+      description: "متن انتخاب شده برای ترجمه ارسال شد",
+    })
   }
 
   return (
@@ -170,12 +173,12 @@ export function BookReaderWithFlip({
           cursor: pointer;
           transition: background-color 0.2s ease;
         }
-        
+
         .interactive-word:hover {
           background-color: rgba(59, 130, 246, 0.1);
           border-radius: 2px;
         }
-        
+
         .interactive-word.highlighted {
           background-color: rgba(59, 130, 246, 0.2);
           border-radius: 2px;
@@ -223,7 +226,10 @@ export function BookReaderWithFlip({
           initialPage={page}
           onPageChange={handlePageChange}
           className="h-[70vh] md:h-[80vh]"
-          interactiveFlipEnabled={interactiveFlipEnabled}
+          interactiveFlipEnabled={interactiveFlipEnabled || settings.interactiveFlipEnabled}
+          pageFlipSpeed={settings.pageFlipSpeed}
+          pageFlipThreshold={settings.pageFlipThreshold}
+          pageFlipEasing={settings.pageFlipEasing}
         />
 
         {/* Text selection handler */}
@@ -234,33 +240,13 @@ export function BookReaderWithFlip({
           }}
           onCopy={(text) => {
             navigator.clipboard.writeText(text)
-            toast.success("متن کپی شد")
+            toast({
+              title: "موفقیت",
+              description: "متن کپی شد",
+            })
           }}
         />
       </div>
-
-      {/* Word tooltip */}
-      <WordTooltip
-        word={selectedWord}
-        isWordSaved={isWordSaved}
-        onClose={() => setSelectedWord(null)}
-        onPlayPronunciation={(word) => {
-          if ("speechSynthesis" in window) {
-            const utterance = new SpeechSynthesisUtterance(word)
-            utterance.lang = "en-US"
-            window.speechSynthesis.speak(utterance)
-          }
-        }}
-        onAddToReview={() => {
-          setIsWordSaved(true)
-          toast.success("کلمه به لیست مرور اضافه شد")
-        }}
-        onRemoveFromReview={() => {
-          setIsWordSaved(false)
-          toast.success("کلمه از لیست مرور حذف شد")
-        }}
-        darkMode={false}
-      />
     </div>
   )
 }

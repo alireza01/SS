@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { EditWordForm } from "@/components/vocabulary/edit-word-form"
+import EditWordForm from "@/components/vocabulary/edit-word-form"
 import { createClient } from "@/lib/supabase/client"
 
 

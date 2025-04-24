@@ -1,131 +1,120 @@
 "use client"
 
+import { useState, useEffect } from "react"
+
 import Image from "next/image"
 
 import { motion } from "framer-motion"
 
 import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
+
+interface AppStats {
+  downloads: number
+  rating: number
+  active_users: number
+}
 
 export function DownloadApp() {
+  const [stats, setStats] = useState<AppStats | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const supabase = createClient()
+
+  useEffect(() => {
+    async function fetchAppStats() {
+      try {
+        const { data, error } = await supabase
+          .from("app_stats")
+          .select("*")
+          .single()
+
+        if (error) throw error
+        setStats(data)
+      } catch (error) {
+        console.error("Error fetching app stats:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchAppStats()
+  }, [])
+
   return (
-    <section className="from-gold-50 dark:to-background bg-gradient-to-b to-white py-20 dark:from-gray-900">
-      <div className="container">
+    <section className="from-gold-50 dark:to-background overflow-hidden bg-gradient-to-b to-white px-4 py-16 dark:from-gray-900">
+      <div className="container mx-auto">
         <div className="grid grid-cols-1 items-center gap-12 md:grid-cols-2">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="relative order-2 md:order-1"
+            transition={{ duration: 0.5 }}
           >
-            <div className="relative mx-auto aspect-square max-w-md">
-              <Image
-                src="/placeholder.svg?height=600&width=600"
-                alt="اپلیکیشن کتاب‌یار"
-                width={600}
-                height={600}
-                className="object-contain"
-              />
+            <h2 className="mb-4 text-3xl font-bold">
+              کتاب‌یار را همه‌جا همراه داشته باشید
+            </h2>
+            <p className="text-muted-foreground mb-8">
+              با اپلیکیشن کتاب‌یار، کتاب‌های مورد علاقه خود را در هر زمان و مکانی مطالعه کنید.
+              امکانات پیشرفته مطالعه، پشتیبانی از حالت آفلاین و همگام‌سازی خودکار پیشرفت مطالعه.
+            </p>
+
+            <div className="mb-8 flex flex-wrap gap-4">
+              <Button asChild size="lg" className="rounded-xl">
+                <a href="#" target="_blank" rel="noopener noreferrer">
+                  <Image
+                    src="/images/google-play-badge.png"
+                    alt="دریافت از گوگل پلی"
+                    width={135}
+                    height={40}
+                  />
+                </a>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="rounded-xl">
+                <a href="#" target="_blank" rel="noopener noreferrer">
+                  <Image
+                    src="/images/app-store-badge.png"
+                    alt="دریافت از اپ استور"
+                    width={120}
+                    height={40}
+                  />
+                </a>
+              </Button>
             </div>
+
+            {stats && (
+              <div className="flex items-center gap-4">
+                <div className="flex -space-x-2 space-x-reverse">
+                  <div className="bg-gold-100 flex size-8 items-center justify-center rounded-full border-2 border-white dark:border-gray-900">
+                    <span className="text-gold-600 text-xs font-medium">
+                      {stats.rating.toFixed(1)}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-sm">
+                  <p className="font-medium">+{stats.downloads.toLocaleString('fa-IR')} دانلود</p>
+                  <p className="text-muted-foreground">
+                    امتیاز {stats.rating.toFixed(1)} از ۵
+                  </p>
+                </div>
+              </div>
+            )}
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            className="order-1 md:order-2"
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="relative"
           >
-            <h2 className="mb-6 text-3xl font-bold md:text-4xl">اپلیکیشن کتاب‌یار را دانلود کنید</h2>
-            <p className="text-muted-foreground mb-8 text-lg">
-              با اپلیکیشن کتاب‌یار، در هر زمان و هر مکان به کتاب‌های مورد علاقه خود دسترسی داشته باشید و مطالعه خود را
-              ادامه دهید.
-            </p>
-
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <Button size="lg" className="gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="size-5"
-                >
-                  <path d="M12 19a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z" />
-                  <path d="M12 19v2" />
-                  <path d="M12 3V1" />
-                  <path d="m4.93 4.93 1.41 1.41" />
-                  <path d="m17.66 17.66 1.41 1.41" />
-                  <path d="M19 12h2" />
-                  <path d="M3 12h2" />
-                  <path d="m17.66 6.34 1.41-1.41" />
-                  <path d="m4.93 19.07 1.41-1.41" />
-                </svg>
-                دانلود از بازار
-              </Button>
-              <Button size="lg" variant="outline" className="gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="size-5"
-                >
-                  <path d="M17 2H7a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5Z" />
-                  <path d="M12 15.5A3.5 3.5 0 1 0 8.5 12a3.5 3.5 0 0 0 3.5 3.5Z" />
-                  <path d="M18 7h.01" />
-                </svg>
-                دانلود مستقیم
-              </Button>
-            </div>
-
-            <div className="mt-8 flex items-center gap-4">
-              <div className="flex -space-x-2 space-x-reverse">
-                <div className="bg-gold-100 flex size-8 items-center justify-center rounded-full border-2 border-white dark:border-gray-900">
-                  <span className="text-gold-600 text-xs font-medium">4.9</span>
-                </div>
-                <div className="size-8 overflow-hidden rounded-full border-2 border-white dark:border-gray-900">
-                  <Image
-                    src="/placeholder.svg?height=32&width=32"
-                    alt="کاربر"
-                    width={32}
-                    height={32}
-                    className="object-cover"
-                  />
-                </div>
-                <div className="size-8 overflow-hidden rounded-full border-2 border-white dark:border-gray-900">
-                  <Image
-                    src="/placeholder.svg?height=32&width=32"
-                    alt="کاربر"
-                    width={32}
-                    height={32}
-                    className="object-cover"
-                  />
-                </div>
-                <div className="size-8 overflow-hidden rounded-full border-2 border-white dark:border-gray-900">
-                  <Image
-                    src="/placeholder.svg?height=32&width=32"
-                    alt="کاربر"
-                    width={32}
-                    height={32}
-                    className="object-cover"
-                  />
-                </div>
-              </div>
-              <div className="text-sm">
-                <p className="font-medium">+۵۰۰۰ دانلود</p>
-                <p className="text-muted-foreground">امتیاز ۴.۹ از ۵</p>
-              </div>
+            <div className="relative aspect-[4/5] md:translate-x-12 md:scale-110">
+              <Image
+                src="/images/app-preview.png"
+                alt="اپلیکیشن کتاب‌یار"
+                fill
+                className="object-contain"
+                priority
+              />
             </div>
           </motion.div>
         </div>

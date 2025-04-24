@@ -13,16 +13,36 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AdvancedFlashcardSystem } from "@/components/vocabulary/advanced-flashcard-system"
 import { createClient } from "@/lib/supabase/client"
 
+interface DatabaseWord {
+  id: string
+  word: string
+  definition: string
+  context: string | null
+  book_id: string | null
+  status: "new" | "learning" | "reviewing" | "mastered"
+  next_review_at: string
+  created_at: string
+  updated_at: string
+  user_id: string
+  level: "beginner" | "intermediate" | "advanced"
+  books?: {
+    id: string
+    title: string
+  }
+}
 
-interface Word {
+interface FlashcardWord {
   id: string
   word: string
   meaning: string
+  explanation?: string
+  example?: string
   status: "learning" | "reviewing" | "mastered"
   next_review_at: string
-  book_id: string
-  book_title?: string
   level: "beginner" | "intermediate" | "advanced"
+  review_count: number
+  book_id?: string
+  book_title?: string
 }
 
 interface VocabularyManagerProps {
@@ -30,8 +50,8 @@ interface VocabularyManagerProps {
 }
 
 export function VocabularyManager({ userId }: VocabularyManagerProps) {
-  const [words, setWords] = useState<Word[]>([])
-  const [filteredWords, setFilteredWords] = useState<Word[]>([])
+  const [words, setWords] = useState<DatabaseWord[]>([])
+  const [filteredWords, setFilteredWords] = useState<DatabaseWord[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("all")
   const supabase = createClient()
@@ -40,11 +60,10 @@ export function VocabularyManager({ userId }: VocabularyManagerProps) {
   const rowVirtualizer = useVirtualizer({
     count: filteredWords.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 180, // estimated height of each card
+    estimateSize: () => 180,
     overscan: 5,
   })
 
-  // دریافت واژگان کاربر
   useEffect(() => {
     const fetchWords = async () => {
       setIsLoading(true)
@@ -54,23 +73,38 @@ export function VocabularyManager({ userId }: VocabularyManagerProps) {
           .select(`
             id,
             word,
-            meaning,
+            definition,
+            context,
+            book_id,
             status,
             next_review_at,
-            book_id,
+            created_at,
+            updated_at,
+            user_id,
+            level,
             books (
+              id,
               title
-            ),
-            level
+            )
           `)
           .eq("user_id", userId)
           .order("next_review_at", { ascending: true })
 
         if (error) throw error
 
-        const formattedWords = data.map((item) => ({
-          ...item,
-          book_title: item.books?.title,
+        const formattedWords: DatabaseWord[] = (data || []).map((item: any) => ({
+          id: item.id,
+          word: item.word,
+          definition: item.definition,
+          context: item.context,
+          book_id: item.book_id,
+          status: item.status,
+          next_review_at: item.next_review_at,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          user_id: item.user_id,
+          level: item.level,
+          books: item.books
         }))
 
         setWords(formattedWords)
@@ -86,7 +120,6 @@ export function VocabularyManager({ userId }: VocabularyManagerProps) {
     fetchWords()
   }, [userId, supabase])
 
-  // پخش تلفظ کلمه
   const playPronunciation = (word: string) => {
     if ("speechSynthesis" in window) {
       const utterance = new SpeechSynthesisUtterance(word)
@@ -97,8 +130,7 @@ export function VocabularyManager({ userId }: VocabularyManagerProps) {
     }
   }
 
-  // تغییر وضعیت کلمه
-  const updateWordStatus = async (wordId: string, newStatus: "learning" | "reviewing" | "mastered") => {
+  const updateWordStatus = async (wordId: string, newStatus: DatabaseWord["status"]) => {
     try {
       const { error } = await supabase
         .from("user_words")
@@ -112,34 +144,20 @@ export function VocabularyManager({ userId }: VocabularyManagerProps) {
 
       if (error) throw error
 
-      // به‌روزرسانی لیست کلمات
-      setWords(
-        words.map((word) =>
-          word.id === wordId
-            ? {
-                ...word,
-                status: newStatus,
-                next_review_at: new Date(
-                  Date.now() + (newStatus === "mastered" ? 7 : newStatus === "reviewing" ? 3 : 1) * 24 * 60 * 60 * 1000,
-                ).toISOString(),
-              }
-            : word,
-        ),
+      const updatedWords = words.map((word) =>
+        word.id === wordId
+          ? {
+              ...word,
+              status: newStatus,
+              next_review_at: new Date(
+                Date.now() + (newStatus === "mastered" ? 7 : newStatus === "reviewing" ? 3 : 1) * 24 * 60 * 60 * 1000,
+              ).toISOString(),
+            }
+          : word,
       )
 
-      setFilteredWords(
-        words.map((word) =>
-          word.id === wordId
-            ? {
-                ...word,
-                status: newStatus,
-                next_review_at: new Date(
-                  Date.now() + (newStatus === "mastered" ? 7 : newStatus === "reviewing" ? 3 : 1) * 24 * 60 * 60 * 1000,
-                ).toISOString(),
-              }
-            : word,
-        ),
-      )
+      setWords(updatedWords)
+      setFilteredWords(updatedWords)
 
       toast.success(
         `وضعیت کلمه به "${newStatus === "mastered" ? "تسلط" : newStatus === "reviewing" ? "مرور" : "یادگیری"}" تغییر یافت`,
@@ -150,13 +168,10 @@ export function VocabularyManager({ userId }: VocabularyManagerProps) {
     }
   }
 
-  // فیلتر کردن کلمات بر اساس وضعیت
-  const filteredWords = words.filter((word) => {
-    if (activeTab === "all") return true
-    return word.status === activeTab
-  })
+  useEffect(() => {
+    setFilteredWords(activeTab === "all" ? words : words.filter((word) => word.status === activeTab))
+  }, [activeTab, words])
 
-  // تبدیل تاریخ به فرمت فارسی
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return new Intl.DateTimeFormat("fa-IR", {
@@ -166,7 +181,6 @@ export function VocabularyManager({ userId }: VocabularyManagerProps) {
     }).format(date)
   }
 
-  // رنگ وضعیت
   const getStatusColor = (status: string) => {
     switch (status) {
       case "learning":
@@ -180,7 +194,6 @@ export function VocabularyManager({ userId }: VocabularyManagerProps) {
     }
   }
 
-  // رنگ سطح
   const getLevelColor = (level: string) => {
     switch (level) {
       case "beginner":
@@ -193,6 +206,19 @@ export function VocabularyManager({ userId }: VocabularyManagerProps) {
         return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
     }
   }
+
+  const mapToFlashcardWord = (word: DatabaseWord): FlashcardWord => ({
+    id: word.id,
+    word: word.word,
+    meaning: word.definition,
+    example: word.context || undefined,
+    status: word.status === "new" ? "learning" : word.status,
+    next_review_at: word.next_review_at,
+    level: word.level,
+    review_count: 0, // This will be updated by the flashcard system
+    book_id: word.book_id || undefined,
+    book_title: word.books?.title
+  })
 
   return (
     <Card>
@@ -230,10 +256,7 @@ export function VocabularyManager({ userId }: VocabularyManagerProps) {
               </div>
             ) : (
               <div className="space-y-4">
-                <div 
-                  ref={parentRef} 
-                  className="h-[600px] overflow-auto"
-                >
+                <div ref={parentRef} className="h-[600px] overflow-auto">
                   <div
                     className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
                     style={{
@@ -254,7 +277,7 @@ export function VocabularyManager({ userId }: VocabularyManagerProps) {
                             transform: `translateY(${virtualItem.start}px)`,
                           }}
                         >
-                          <Card className="overflow-hidden">
+                          <Card>
                             <CardContent className="p-0">
                               <div className="p-4">
                                 <div className="mb-2 flex items-center justify-between">
@@ -264,7 +287,7 @@ export function VocabularyManager({ userId }: VocabularyManagerProps) {
                                     <span className="sr-only">تلفظ</span>
                                   </Button>
                                 </div>
-                                <p className="mb-3 text-sm">{word.meaning}</p>
+                                <p className="mb-3 text-sm">{word.definition}</p>
                                 <div className="mb-3 flex flex-wrap gap-2">
                                   <Badge variant="outline" className={getLevelColor(word.level)}>
                                     {word.level === "beginner"
@@ -281,10 +304,10 @@ export function VocabularyManager({ userId }: VocabularyManagerProps) {
                                         : "تسلط یافته"}
                                   </Badge>
                                 </div>
-                                {word.book_title && (
+                                {word.books && (
                                   <div className="text-muted-foreground mb-3 flex items-center gap-1 text-xs">
                                     <BookOpen className="size-3" />
-                                    <span>{word.book_title}</span>
+                                    <span>{word.books.title}</span>
                                   </div>
                                 )}
                                 <div className="text-muted-foreground flex items-center gap-1 text-xs">
@@ -335,7 +358,10 @@ export function VocabularyManager({ userId }: VocabularyManagerProps) {
                 {words.filter((w) => w.status === "learning" || w.status === "reviewing").length >= 5 && (
                   <div className="mt-8">
                     <AdvancedFlashcardSystem
-                      words={words.filter((w) => w.status === "learning" || w.status === "reviewing")}
+                      words={words.filter((w) => w.status === "learning" || w.status === "reviewing").map(mapToFlashcardWord)}
+                      userLevel="intermediate"
+                      onComplete={() => {}}
+                      onUpdateStatus={updateWordStatus}
                     />
                   </div>
                 )}

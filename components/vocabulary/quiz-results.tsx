@@ -24,7 +24,7 @@ export function QuizResults({ score, totalQuestions, streak, onRestart }: QuizRe
       <CardContent>
         <div className="space-y-6 py-6 text-center">
           <div className="flex justify-center">
-            <div className="flex size-20 items-center justify-center rounded-full bg-gold-100 text-gold-600 dark:bg-gold-900/30 dark:text-gold-400">
+            <div className="bg-gold-100 text-gold-600 dark:bg-gold-900/30 dark:text-gold-400 flex size-20 items-center justify-center rounded-full">
               <Award className="size-10" />
             </div>
           </div>

@@ -26,16 +26,44 @@ import { toast } from "@/components/ui/use-toast"
 import { createClient } from "@/lib/supabase/client"
 import type { ApiKey, ApiKeyType } from "@/types/api"
 
+interface SupabaseApiKey {
+  id: string;
+  name: string;
+  key: string;
+  type: ApiKeyType;
+  created_at: string;
+  last_used_at: string | null;
+  is_active: boolean;
+  created_by: string;
+}
+
+interface ApiKeysPageState {
+  isGenerating: boolean;
+  geminiApiKey: string;
+  apiKeys: ApiKey[];
+  isLoading: boolean;
+  error: string | null;
+}
+
 export default function ApiKeysPage() {
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [geminiApiKey, setGeminiApiKey] = useState("")
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [state, setState] = useState<ApiKeysPageState>({
+    isGenerating: false,
+    geminiApiKey: "",
+    apiKeys: [],
+    isLoading: true,
+    error: null,
+  })
+
   const supabase = createClient()
 
   useEffect(() => {
+    let isMounted = true
+
     async function fetchApiKeys() {
-      setIsLoading(true)
+      if (!isMounted) return
+
+      setState((prev) => ({ ...prev, isLoading: true, error: null }))
+
       try {
         const { data, error } = await supabase
           .from("api_keys")
@@ -43,24 +71,52 @@ export default function ApiKeysPage() {
           .order("created_at", { ascending: false })
 
         if (error) throw error
-        setApiKeys(data)
+        
+        if (!isMounted) return
+
+        // Transform the data to match our ApiKey interface
+        const transformedData = data.map((key: SupabaseApiKey) => ({
+          id: key.id,
+          name: key.name,
+          key: key.key,
+          type: key.type as ApiKeyType,
+          createdAt: key.created_at,
+          lastUsed: key.last_used_at,
+          isActive: key.is_active,
+          userId: key.created_by
+        }))
+        
+        setState((prev) => ({ ...prev, apiKeys: transformedData }))
       } catch (error) {
         console.error("Error fetching API keys:", error)
-        toast({
-          title: "خطا",
-          description: "خطا در دریافت کلیدهای API",
-          variant: "destructive",
-        })
+        if (isMounted) {
+          setState((prev) => ({ 
+            ...prev, 
+            error: "خطا در دریافت کلیدهای API",
+            apiKeys: [] 
+          }))
+          toast({
+            title: "خطا",
+            description: "خطا در دریافت کلیدهای API",
+            variant: "destructive",
+          })
+        }
       } finally {
-        setIsLoading(false)
+        if (isMounted) {
+          setState((prev) => ({ ...prev, isLoading: false }))
+        }
       }
     }
 
     fetchApiKeys()
-  }, [supabase, toast])
+
+    return () => {
+      isMounted = false
+    }
+  }, [supabase])
 
   const handleGenerateKey = async () => {
-    setIsGenerating(true)
+    setState((prev) => ({ ...prev, isGenerating: true }))
     try {
       const response = await fetch('/api/admin/api-keys', {
         method: 'POST',
@@ -78,7 +134,18 @@ export default function ApiKeysPage() {
       }
 
       const newKey = await response.json()
-      setApiKeys([newKey, ...apiKeys])
+      // Ensure the new key matches the ApiKey interface
+      const formattedKey: ApiKey = {
+        id: newKey.id,
+        name: newKey.name,
+        key: newKey.key,
+        type: newKey.type as ApiKeyType,
+        createdAt: newKey.created_at,
+        lastUsed: newKey.last_used_at,
+        isActive: newKey.is_active,
+        userId: newKey.created_by
+      }
+      setState((prev) => ({ ...prev, apiKeys: [formattedKey, ...prev.apiKeys] }))
       
       toast({
         title: "کلید API جدید ایجاد شد",
@@ -92,21 +159,47 @@ export default function ApiKeysPage() {
         variant: "destructive",
       })
     } finally {
-      setIsGenerating(false)
+      setState((prev) => ({ ...prev, isGenerating: false }))
     }
   }
 
   const handleSaveGeminiKey = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error("User not authenticated")
+
       const { error } = await supabase
         .from("api_keys")
         .upsert({
           name: "Gemini API Key",
-          key: geminiApiKey,
-          type: "gemini",
+          key: state.geminiApiKey,
+          type: "gemini" as ApiKeyType,
+          is_active: true,
+          created_by: user.id
         })
 
       if (error) throw error
+
+      // Refresh the API keys list
+      const { data: updatedKeys, error: fetchError } = await supabase
+        .from("api_keys")
+        .select("*")
+        .order("created_at", { ascending: false })
+
+      if (fetchError) throw fetchError
+
+      const transformedData = updatedKeys.map((key: SupabaseApiKey) => ({
+        id: key.id,
+        name: key.name,
+        key: key.key,
+        type: key.type as ApiKeyType,
+        createdAt: key.created_at,
+        lastUsed: key.last_used_at,
+        isActive: key.is_active,
+        userId: key.created_by
+      }))
+
+      setState(prev => ({ ...prev, apiKeys: transformedData }))
 
       toast({
         title: "کلید API جمینی ذخیره شد",
@@ -131,7 +224,11 @@ export default function ApiKeysPage() {
 
       if (error) throw error
 
-      setApiKeys(apiKeys.filter((key) => key.id !== id))
+      setState((prev) => ({
+        ...prev,
+        apiKeys: prev.apiKeys.filter((key) => key.id !== id)
+      }))
+
       toast({
         title: "کلید API حذف شد",
         description: "کلید API با موفقیت حذف شد.",
@@ -152,6 +249,10 @@ export default function ApiKeysPage() {
       title: "کلید API کپی شد",
       description: "کلید API در کلیپ‌بورد کپی شد.",
     })
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setState((prev) => ({ ...prev, geminiApiKey: e.target.value }))
   }
 
   const formatRelativeTime = (dateString: string | null) => {
@@ -175,17 +276,41 @@ export default function ApiKeysPage() {
     }
   }
 
-  if (isLoading) {
-    return <div>در حال بارگذاری...</div>
+  if (state.error) {
+    return (
+      <div className="flex items-center justify-center p-6">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-red-600">{state.error}</h2>
+          <Button 
+            variant="outline" 
+            className="mt-4"
+            onClick={() => window.location.reload()}
+          >
+            تلاش مجدد
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (state.isLoading) {
+    return (
+      <div className="flex items-center justify-center p-6">
+        <div className="text-center">
+          <div className="border-primary size-8 animate-spin rounded-full border-4 border-t-transparent"></div>
+          <p className="mt-2">در حال بارگذاری...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">مدیریت کلیدهای API</h1>
-        <Button onClick={handleGenerateKey} disabled={isGenerating}>
+        <Button onClick={handleGenerateKey} disabled={state.isGenerating}>
           <Plus className="ml-2 size-4" />
-          {isGenerating ? "در حال ایجاد..." : "ایجاد کلید جدید"}
+          {state.isGenerating ? "در حال ایجاد..." : "ایجاد کلید جدید"}
         </Button>
       </div>
 
@@ -201,8 +326,8 @@ export default function ApiKeysPage() {
           <div className="flex gap-2">
             <Input
               placeholder="کلید API جمینی را وارد کنید"
-              value={geminiApiKey}
-              onChange={(e) => setGeminiApiKey(e.target.value)}
+              value={state.geminiApiKey}
+              onChange={handleInputChange}
               type="password"
             />
             <Button onClick={handleSaveGeminiKey}>ذخیره</Button>
@@ -228,7 +353,7 @@ export default function ApiKeysPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {apiKeys.map((apiKey) => (
+              {state.apiKeys.map((apiKey) => (
                 <TableRow key={apiKey.id}>
                   <TableCell className="font-medium">{apiKey.name}</TableCell>
                   <TableCell>{apiKey.key}</TableCell>
@@ -237,8 +362,8 @@ export default function ApiKeysPage() {
                       {apiKey.type === "gemini" ? "جمینی" : "سفارشی"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{formatRelativeTime(apiKey.created_at)}</TableCell>
-                  <TableCell>{formatRelativeTime(apiKey.last_used_at)}</TableCell>
+                  <TableCell>{formatRelativeTime(apiKey.createdAt)}</TableCell>
+                  <TableCell>{formatRelativeTime(apiKey.lastUsed)}</TableCell>
                   <TableCell>
                     <div className="flex items-center justify-end space-x-2 space-x-reverse">
                       <Button variant="ghost" size="icon" onClick={() => handleCopyKey(apiKey.key)}>

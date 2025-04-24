@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Word } from '@/types/vocabulary';
+import React, { useState } from 'react';
+
 import { motion, AnimatePresence } from 'framer-motion';
+
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import type { Word } from '@/types/vocabulary';
 
 interface FlashcardSystemProps {
   words: Word[];
@@ -45,16 +47,16 @@ export const FlashcardSystem: React.FC<FlashcardSystemProps> = ({
 
   if (!words.length) {
     return (
-      <div className="text-center p-4">
+      <div className="p-4 text-center">
         <p className="text-gray-500">No flashcards available</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto p-4">
+    <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-6 p-4">
       <div className="w-full">
-        <div className="flex justify-between mb-4">
+        <div className="mb-4 flex justify-between">
           <span className="text-sm text-gray-500">
             Card {currentIndex + 1} of {words.length}
           </span>
@@ -73,7 +75,7 @@ export const FlashcardSystem: React.FC<FlashcardSystemProps> = ({
             className="perspective-1000"
           >
             <Card
-              className="w-full min-h-[200px] p-6 cursor-pointer bg-white shadow-lg hover:shadow-xl transition-shadow"
+              className="min-h-[200px] w-full cursor-pointer bg-white p-6 shadow-lg transition-shadow hover:shadow-xl"
               onClick={handleFlip}
             >
               <div
@@ -85,18 +87,16 @@ export const FlashcardSystem: React.FC<FlashcardSystemProps> = ({
               >
                 {isFlipped ? (
                   <div className="flex flex-col gap-4">
-                    <h3 className="text-xl font-medium">{currentWord.definition}</h3>
-                    {currentWord.examples && currentWord.examples.length > 0 && (
+                    <h3 className="text-xl font-medium">{currentWord.meaning}</h3>
+                    {currentWord.example && (
                       <div className="text-sm text-gray-600">
-                        <p className="font-medium mb-2">Examples:</p>
-                        {currentWord.examples.map((example, idx) => (
-                          <p key={idx} className="italic">{example}</p>
-                        ))}
+                        <p className="mb-2 font-medium">Example:</p>
+                        <p className="italic">{currentWord.example}</p>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <h2 className="text-2xl font-bold">{currentWord.term}</h2>
+                  <h2 className="text-2xl font-bold">{currentWord.word}</h2>
                 )}
               </div>
             </Card>

@@ -14,37 +14,28 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useRealtimeUpdates } from "@/hooks/use-realtime-updates"
-import { getWordDifficultyColor, getLevelText } from "@/lib/utils"
+import { getWordDifficultyColor } from "@/lib/utils"
 import { trackAdminAction } from "@/lib/utils/admin-analytics"
+import type { Database } from "@/types/supabase"
 
 const ITEMS_PER_PAGE = 10
 
-interface Word {
-  id: string
-  word: string
-  meaning: string
-  example: string
-  status: string
-  createdAt: string
-  level: 'beginner' | 'intermediate' | 'advanced'
-  category: string
-  search_count: number
-}
+type Word = Database["public"]["Tables"]["vocabulary"]["Row"]
 
 export default function WordsManagement() {
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const supabase = createClientComponentClient()
+  const supabase = createClientComponentClient<Database>()
 
   const { data: totalCount = 0 } = useQuery({
     queryKey: ["words-count", searchQuery],
     queryFn: async () => {
       const query = supabase
-        .from("words")
+        .from("vocabulary")
         .select("id", { count: "exact" })
       
       if (searchQuery) {
-        query.or(`word.ilike.%${searchQuery}%,meaning.ilike.%${searchQuery}%`)
+        query.or(`word.ilike.%${searchQuery}%,definition.ilike.%${searchQuery}%`)
       }
 
       const { count, error } = await query
@@ -62,13 +53,13 @@ export default function WordsManagement() {
     queryKey: ["words", currentPage, searchQuery],
     queryFn: async () => {
       const query = supabase
-        .from("words")
-        .select("*")
-        .order("search_count", { ascending: false })
+        .from("vocabulary")
+        .select()
+        .order("mastery_level", { ascending: false })
         .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1)
       
       if (searchQuery) {
-        query.or(`word.ilike.%${searchQuery}%,meaning.ilike.%${searchQuery}%`)
+        query.or(`word.ilike.%${searchQuery}%,definition.ilike.%${searchQuery}%`)
       }
 
       const { data, error } = await query
@@ -84,7 +75,7 @@ export default function WordsManagement() {
 
   // Set up real-time updates
   useRealtimeUpdates({
-    table: "words",
+    table: "vocabulary",
     onInsert: () => refetch(),
     onUpdate: () => refetch(),
     onDelete: () => refetch()
@@ -96,7 +87,7 @@ export default function WordsManagement() {
 
   const handleDelete = async (wordId: string) => {
     const { error } = await supabase
-      .from("words")
+      .from("vocabulary")
       .delete()
       .eq("id", wordId)
 
@@ -155,9 +146,9 @@ export default function WordsManagement() {
                 <TableHead className="w-12 text-center">#</TableHead>
                 <TableHead>واژه</TableHead>
                 <TableHead>معنی</TableHead>
-                <TableHead className="text-center">سطح</TableHead>
-                <TableHead className="text-center">دسته‌بندی</TableHead>
-                <TableHead className="text-center">تعداد جستجو</TableHead>
+                <TableHead className="text-center">سطح تسلط</TableHead>
+                <TableHead className="text-center">کتاب مرتبط</TableHead>
+                <TableHead className="text-center">بافت متنی</TableHead>
                 <TableHead className="text-left">عملیات</TableHead>
               </TableRow>
             </TableHeader>
@@ -175,20 +166,20 @@ export default function WordsManagement() {
                   </TableCell>
                 </TableRow>
               ) : (
-                words.map((word: Word, index: number) => (
+                words.map((word, index) => (
                   <TableRow key={word.id}>
                     <TableCell className="text-center font-medium">
                       {startItem + index}
                     </TableCell>
                     <TableCell className="font-medium">{word.word}</TableCell>
-                    <TableCell>{word.meaning}</TableCell>
+                    <TableCell>{word.definition}</TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="outline" className={getWordDifficultyColor(word.level)}>
-                        {getLevelText(word.level)}
+                      <Badge variant="outline" className={getWordDifficultyColor(word.mastery_level)}>
+                        {word.mastery_level}%
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-center">{word.category}</TableCell>
-                    <TableCell className="text-center">{word.search_count}</TableCell>
+                    <TableCell className="text-center">{word.book_id || "-"}</TableCell>
+                    <TableCell className="text-center">{word.context || "-"}</TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end space-x-2 space-x-reverse">
                         <Button variant="ghost" size="icon">

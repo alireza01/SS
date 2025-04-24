@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Button } from '@/components/ui/button'
+
 import { AlertCircle } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
 
 export default function Error({
   error,
@@ -18,8 +20,8 @@ export default function Error({
 
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col items-center justify-center gap-4">
-      <div className="flex items-center gap-2 text-destructive">
-        <AlertCircle className="h-6 w-6" />
+      <div className="text-destructive flex items-center gap-2">
+        <AlertCircle className="size-6" />
         <h2 className="text-lg font-semibold">Something went wrong!</h2>
       </div>
       <p className="text-muted-foreground">

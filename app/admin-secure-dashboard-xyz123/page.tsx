@@ -1,27 +1,29 @@
 import { Suspense } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
 import { BookOpen, Users, BookText, TrendingUp } from "lucide-react"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { createServerClient } from "@/lib/supabase/server"
+
 import type { 
   BookStatistics, 
   WordStatistics, 
-  GetActiveReadersResponse,
-  CountResponse
+  GetActiveReadersResponse
 } from "./types"
 
 // Loading component for statistics
 function StatisticsSkeleton() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
       {[...Array(4)].map((_, i) => (
         <Card key={i}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-            <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+            <div className="size-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
           </CardHeader>
           <CardContent>
-            <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2" />
-            <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="mb-2 h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+            <div className="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
           </CardContent>
         </Card>
       ))}
@@ -32,18 +34,18 @@ function StatisticsSkeleton() {
 // Loading component for charts
 function ChartsSkeleton() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       {[...Array(2)].map((_, i) => (
         <Card key={i}>
           <CardHeader>
-            <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="h-6 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {[...Array(5)].map((_, j) => (
                 <div key={j} className="space-y-2">
-                  <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                  <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                  <div className="h-2 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
                 </div>
               ))}
             </div>
@@ -57,7 +59,7 @@ function ChartsSkeleton() {
 // Error component for data fetching errors
 function ErrorDisplay({ message }: { message: string }) {
   return (
-    <div className="p-4 text-red-500 bg-red-50 dark:bg-red-900/10 rounded-lg">
+    <div className="rounded-lg bg-red-50 p-4 text-red-500 dark:bg-red-900/10">
       <p className="text-sm">{message}</p>
     </div>
   )
@@ -91,48 +93,48 @@ async function Statistics() {
     const completionRate = activeReadersData?.[0]?.completion_rate ?? 0
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">کتاب‌ها</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
+            <BookOpen className="text-muted-foreground size-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{booksCount.count ?? 0}</div>
-            <p className="text-xs text-muted-foreground">مجموع کتاب‌های موجود</p>
+            <p className="text-muted-foreground text-xs">مجموع کتاب‌های موجود</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">کاربران</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="text-muted-foreground size-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{usersCount.count ?? 0}</div>
-            <p className="text-xs text-muted-foreground">مجموع کاربران ثبت‌نام شده</p>
+            <p className="text-muted-foreground text-xs">مجموع کاربران ثبت‌نام شده</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">واژگان</CardTitle>
-            <BookText className="h-4 w-4 text-muted-foreground" />
+            <BookText className="text-muted-foreground size-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{wordsCount.count ?? 0}</div>
-            <p className="text-xs text-muted-foreground">مجموع واژگان ثبت شده</p>
+            <p className="text-muted-foreground text-xs">مجموع واژگان ثبت شده</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">خوانندگان فعال</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <TrendingUp className="text-muted-foreground size-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeReaders}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               نرخ تکمیل: {completionRate}%
             </p>
           </CardContent>
@@ -181,7 +183,7 @@ async function Charts() {
     const popularWords = popularWordsResult.data as WordStatistics[]
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>کتاب‌های پرطرفدار</CardTitle>
@@ -195,17 +197,17 @@ async function Charts() {
                     <div className="w-full">
                       <div className="flex items-center justify-between">
                         <p className="font-medium">{book.title}</p>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-muted-foreground text-sm">
                           {book.total_readers} خواننده
                         </span>
                       </div>
-                      <div className="mt-1 w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+                      <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                         <div
-                          className="bg-[#D29E64] h-full rounded-full"
+                          className="h-full rounded-full bg-[#D29E64]"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-muted-foreground mt-1 text-xs">
                         {book.completed_readers} تکمیل شده • میانگین پیشرفت: {Math.round(book.average_progress)}%
                       </p>
                     </div>
@@ -229,17 +231,17 @@ async function Charts() {
                     <div className="w-full">
                       <div className="flex items-center justify-between">
                         <p className="font-medium">{word.word}</p>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-muted-foreground text-sm">
                           {word.search_count} جستجو
                         </span>
                       </div>
-                      <div className="mt-1 w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+                      <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                         <div
-                          className="bg-purple-500 h-full rounded-full"
+                          className="h-full rounded-full bg-purple-500"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-muted-foreground mt-1 text-xs">
                         {word.unique_searchers} کاربر منحصر به فرد
                       </p>
                     </div>

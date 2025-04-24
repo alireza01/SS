@@ -1,25 +1,21 @@
 import { NextResponse } from "next/server"
 
 import { createServerClient } from "@/lib/supabase/app-server"
+import type { Database } from "@/lib/supabase/database.types"
 
-interface EmailSettings {
-  smtp_host: string | null
-  smtp_port: number
-  smtp_username: string | null
-  smtp_password?: string | null
-  updated_at: string
-}
+type EmailSettingsInsert = Database['public']['Tables']['email_settings']['Insert']
+type EmailSettingsRow = Database['public']['Tables']['email_settings']['Row']
 
 export async function POST(request: Request) {
   try {
     const supabase = createServerClient()
     const formData = await request.formData()
     
-    const settings: EmailSettings = {
+    const settings: Partial<EmailSettingsInsert> = {
       smtp_host: formData.get("smtpHost") as string,
       smtp_port: parseInt(formData.get("smtpPort") as string),
       smtp_username: formData.get("smtpUsername") as string,
-      smtp_password: formData.get("smtpPassword") as string,
+      smtp_password: formData.get("smtpPassword") as string || null,
       updated_at: new Date().toISOString()
     }
 
@@ -28,9 +24,21 @@ export async function POST(request: Request) {
       delete settings.smtp_password
     }
 
+    // Get existing settings first
+    const { data: existingSettings, error: fetchError } = await supabase
+      .from("email_settings")
+      .select()
+      .single()
+
+    if (fetchError) {
+      console.warn("No existing settings found, creating new record")
+    } else if (existingSettings) {
+      settings.id = existingSettings.id
+    }
+
     const { error } = await supabase
       .from("email_settings")
-      .upsert(settings)
+      .upsert([settings])
 
     if (error) throw error
 

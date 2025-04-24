@@ -3,29 +3,18 @@ import { Suspense } from "react"
 import { unstable_cache } from "next/cache"
 import { redirect } from "next/navigation"
 
+
 import { DashboardClient } from "@/components/dashboard/dashboard-client"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { createServerClient } from "@/lib/supabase/app-server"
 
+import type { User } from "@supabase/supabase-js"
+
 export const metadata = {
   title: "داشبورد | کتاب‌یار",
   description: "داشبورد کاربری پلتفرم کتاب‌یار",
-}
-
-async function getUserData() {
-  const supabase = createServerClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect("/auth/login?redirect=/dashboard")
-  }
-
-  return user
 }
 
 interface DbBook {
@@ -36,6 +25,11 @@ interface DbBook {
   totalPages: number
   isPremium: boolean
   level: string
+  description?: string
+  categories?: Array<{
+    id: string
+    name: string
+  }>
 }
 
 interface DbReadingProgress {
@@ -57,147 +51,169 @@ interface DbActivity {
     id: string
     title: string
     coverImage: string
+    slug: string
+  }
+}
+
+interface UserStats {
+  totalBooksStarted: number
+  totalBooksCompleted: number
+  totalPagesRead: number
+  totalReadingTime: number
+  reviewStreak: number
+  quizStreak: number
+}
+
+async function getUserData(): Promise<User> {
+  const supabase = createServerClient()
+
+  try {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
+
+    if (error) throw error
+    if (!user) redirect("/auth/login?redirect=/dashboard")
+
+    return user
+  } catch (error) {
+    console.error("Error fetching user data:", error)
+    redirect("/auth/login?redirect=/dashboard")
   }
 }
 
 const getCurrentlyReading = unstable_cache(
-  async (userId: string) => {
+  async (userId: string): Promise<DbReadingProgress[]> => {
     const supabase = createServerClient()
 
-    const { data } = await supabase
-      .from("reading_progress")
-      .select(`
-        id,
-        bookId,
-        currentPage,
-        lastReadAt,
-        readingTime,
-        books (
+    try {
+      const { data, error } = await supabase
+        .from("reading_progress")
+        .select(`
+          id,
+          bookId,
+          currentPage,
+          lastReadAt,
+          readingTime,
+          books:books (
+            id,
+            title,
+            author,
+            coverImage,
+            totalPages,
+            isPremium,
+            level
+          )
+        `)
+        .eq("userId", userId)
+        .order("lastReadAt", { ascending: false })
+        .limit(4)
+
+      if (error) throw error
+      if (!data) return []
+
+      // Transform the data to match our interface
+      const transformedData = data.map(item => ({
+        id: item.id,
+        bookId: item.bookId,
+        currentPage: item.currentPage,
+        lastReadAt: item.lastReadAt,
+        readingTime: item.readingTime,
+        books: Array.isArray(item.books) ? item.books[0] : item.books // Handle both array and single object cases
+      })) satisfies DbReadingProgress[]
+
+      return transformedData
+    } catch (error) {
+      console.error("Error fetching reading progress:", error)
+      return []
+    }
+  },
+  ["currently-reading"],
+  { 
+    revalidate: 60,
+    tags: ["reading-progress"] 
+  }
+)
+
+const getRecommendedBooks = unstable_cache(
+  async (userId: string): Promise<DbBook[]> => {
+    const supabase = createServerClient()
+
+    try {
+      const { data: userSettings, error: settingsError } = await supabase
+        .from("user_settings")
+        .select("level")
+        .eq("userId", userId)
+        .single()
+
+      if (settingsError) throw settingsError
+
+      const userLevel = userSettings?.level || "beginner"
+
+      const { data: readBooks, error: readBooksError } = await supabase
+        .from("reading_progress")
+        .select("bookId")
+        .eq("userId", userId)
+
+      if (readBooksError) throw readBooksError
+
+      const readBookIds = readBooks?.map((item) => item.bookId) || []
+
+      let query = supabase
+        .from("books")
+        .select(`
           id,
           title,
           author,
           coverImage,
-          totalPages,
+          level,
           isPremium,
-          level
-        )
-      `)
-      .eq("userId", userId)
-      .order("lastReadAt", { ascending: false })
-      .limit(4)
+          totalPages,
+          description,
+          categories (
+            id,
+            name
+          )
+        `)
+        .eq("level", userLevel)
 
-    if (!data) return []
-
-    return (data as unknown as { 
-      id: string
-      bookId: string
-      currentPage: number
-      lastReadAt: string
-      readingTime: number
-      books: {
-        id: string
-        title: string
-        author: string
-        coverImage: string
-        totalPages: number
-        isPremium: boolean
-        level: string
+      if (readBookIds.length > 0) {
+        query = query.not("id", "in", `(${readBookIds.join(",")})`)
       }
-    }[]).map(item => ({
-      id: item.id,
-      bookId: item.bookId,
-      currentPage: item.currentPage,
-      lastReadAt: item.lastReadAt,
-      readingTime: item.readingTime,
-      books: item.books
-    }))
-  },
-  ["currently-reading"],
-  { revalidate: 60 }
-)
 
-const getRecommendedBooks = unstable_cache(
-  async (userId: string) => {
-    const supabase = createServerClient()
+      const { data, error } = await query.limit(6)
 
-    // Get user level
-    const { data: userSettings } = await supabase
-      .from("user_settings")
-      .select("level")
-      .eq("userId", userId)
-      .single()
+      if (error) throw error
+      if (!data) return []
 
-    const userLevel = userSettings?.level || "beginner"
-
-    // Get read books
-    const { data: readBooks } = await supabase
-      .from("reading_progress")
-      .select("bookId")
-      .eq("userId", userId)
-
-    const readBookIds = readBooks?.map((item) => item.bookId) || []
-
-    // Get recommended books
-    let query = supabase
-      .from("books")
-      .select(`
-        id,
-        title,
-        author,
-        coverImage,
-        level,
-        isPremium,
-        totalPages,
-        description,
-        categories (
-          id,
-          name
-        )
-      `)
-      .eq("level", userLevel)
-
-    if (readBookIds.length > 0) {
-      query = query.not("id", "in", `(${readBookIds.join(",")})`)
+      return data as DbBook[]
+    } catch (error) {
+      console.error("Error fetching recommended books:", error)
+      return []
     }
-
-    const { data } = await query.limit(6)
-
-    if (!data) return []
-
-    return (data as unknown as {
-      id: string
-      title: string
-      author: string
-      coverImage: string
-      totalPages: number
-      isPremium: boolean
-      level: string
-    }[]).map(book => ({
-      id: book.id,
-      title: book.title,
-      author: book.author,
-      coverImage: book.coverImage,
-      totalPages: book.totalPages,
-      isPremium: book.isPremium,
-      level: book.level
-    }))
   },
   ["recommended-books"],
-  { revalidate: 3600 }
+  { 
+    revalidate: 3600,
+    tags: ["books", "recommendations"]
+  }
 )
 
 const getUserStats = unstable_cache(
-  async (userId: string) => {
+  async (userId: string): Promise<UserStats> => {
     const supabase = createServerClient()
 
-    const { data } = await supabase
-      .from("user_stats")
-      .select("totalBooksStarted, totalBooksCompleted, totalPagesRead, totalReadingTime, reviewStreak, quizStreak")
-      .eq("userId", userId)
-      .single()
+    try {
+      const { data, error } = await supabase
+        .from("user_stats")
+        .select("totalBooksStarted, totalBooksCompleted, totalPagesRead, totalReadingTime, reviewStreak, quizStreak")
+        .eq("userId", userId)
+        .single()
 
-    return (
-      data || {
+      if (error) throw error
+
+      return data || {
         totalBooksStarted: 0,
         totalBooksCompleted: 0,
         totalPagesRead: 0,
@@ -205,58 +221,70 @@ const getUserStats = unstable_cache(
         reviewStreak: 0,
         quizStreak: 0,
       }
-    )
+    } catch (error) {
+      console.error("Error fetching user stats:", error)
+      return {
+        totalBooksStarted: 0,
+        totalBooksCompleted: 0,
+        totalPagesRead: 0,
+        totalReadingTime: 0,
+        reviewStreak: 0,
+        quizStreak: 0,
+      }
+    }
   },
   ["user-stats"],
-  { revalidate: 60 } // Revalidate every minute instead of 5 minutes for more responsive stats
+  { 
+    revalidate: 60,
+    tags: ["stats"]
+  }
 )
 
 const getRecentActivity = unstable_cache(
-  async (userId: string) => {
+  async (userId: string): Promise<DbActivity[]> => {
     const supabase = createServerClient()
 
-    const { data } = await supabase
-      .from("user_activity")
-      .select(`
-        id,
-        activityType,
-        bookId,
-        details,
-        createdAt,
-        books (
+    try {
+      const { data, error } = await supabase
+        .from("user_activity")
+        .select(`
           id,
-          title,
-          coverImage
-        )
-      `)
-      .eq("userId", userId)
-      .order("createdAt", { ascending: false })
-      .limit(5)
+          activityType,
+          bookId,
+          details,
+          createdAt,
+          books (
+            id,
+            title,
+            coverImage,
+            slug
+          )
+        `)
+        .eq("userId", userId)
+        .order("createdAt", { ascending: false })
+        .limit(5)
 
-    if (!data) return []
+      if (error) throw error
+      if (!data) return []
 
-    return (data as unknown as {
-      id: string
-      activityType: string
-      bookId: string
-      details: string
-      createdAt: string
-      books: {
-        id: string
-        title: string
-        coverImage: string
-      }
-    }[]).map(activity => ({
-      id: activity.id,
-      activityType: activity.activityType,
-      bookId: activity.bookId,
-      details: activity.details,
-      createdAt: activity.createdAt,
-      books: activity.books
-    }))
+      return data.map(item => ({
+        id: item.id,
+        activityType: item.activityType,
+        bookId: item.bookId,
+        details: item.details,
+        createdAt: item.createdAt,
+        books: Array.isArray(item.books) ? item.books[0] : item.books
+      }))
+    } catch (error) {
+      console.error("Error fetching recent activity:", error)
+      return []
+    }
   },
   ["recent-activity"],
-  { revalidate: 60 }
+  { 
+    revalidate: 60,
+    tags: ["activity"]
+  }
 )
 
 const getDailyGoals = unstable_cache(

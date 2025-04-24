@@ -3,7 +3,7 @@
 import { ErrorCard } from "@/components/error-card"
 
 export default function Error({
-  _error,
+  error,
   reset,
 }: {
   error: Error & { digest?: string }

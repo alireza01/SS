@@ -16,12 +16,17 @@ import type { User } from "@supabase/supabase-js"
 
 interface Profile {
   id: string
-  fullName: string
-  avatarUrl: string | null
+  username: string | null
+  full_name: string | null
+  avatar_url: string | null
+  role: 'user' | 'admin'
+  is_active: boolean
+  language_preference: string
+  created_at: string
+  updated_at: string
   level: "beginner" | "intermediate" | "advanced"
-  bio: string
-  website: string
-  createdAt: string
+  bio: string | null
+  website: string | null
 }
 
 interface UserData {
@@ -63,12 +68,17 @@ async function getUserData(): Promise<UserData> {
     user,
     profile: profile || {
       id: user.id,
-      fullName: user.user_metadata?.full_name || "",
-      avatarUrl: user.user_metadata?.avatar_url || null,
+      username: null,
+      full_name: user.user_metadata?.full_name || null,
+      avatar_url: user.user_metadata?.avatar_url || null,
+      role: 'user',
+      is_active: true,
+      language_preference: 'fa',
       level: "beginner",
-      bio: "",
-      website: "",
-      createdAt: user.created_at,
+      bio: null,
+      website: null,
+      created_at: user.created_at,
+      updated_at: user.created_at
     },
   }
 }

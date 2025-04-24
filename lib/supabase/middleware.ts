@@ -1,11 +1,14 @@
 import { cookies } from "next/headers"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
+
 import { createServerClient } from "@supabase/ssr"
-import type { CookieOptions } from "@supabase/ssr"
+
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY, DEFAULT_COOKIE_OPTIONS } from "./config"
+
 import type { Database } from "./config"
+import type { CookieOptions } from "@supabase/ssr"
 
 /**
  * Creates a Supabase client for middleware with proper cookie handling

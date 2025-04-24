@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react"
 
 import { BookOpen, Clock, Calendar } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 
 

@@ -1,7 +1,9 @@
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+
 import { AlertCircle } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface ErrorPageProps {
   searchParams: {
@@ -15,16 +17,16 @@ export default function ErrorPage({ searchParams }: ErrorPageProps) {
   return (
     <Card>
       <CardHeader className="space-y-1">
-        <div className="flex justify-center mb-4">
-          <div className="w-12 h-12 rounded-full bg-destructive/20 flex items-center justify-center text-destructive">
-            <AlertCircle className="h-6 w-6" />
+        <div className="mb-4 flex justify-center">
+          <div className="bg-destructive/20 text-destructive flex size-12 items-center justify-center rounded-full">
+            <AlertCircle className="size-6" />
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold text-center">خطا در احراز هویت</CardTitle>
+        <CardTitle className="text-center text-2xl font-bold">خطا در احراز هویت</CardTitle>
         <CardDescription className="text-center">{error}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-center text-muted-foreground">
+        <p className="text-muted-foreground text-center">
           لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید
         </p>
       </CardContent>

@@ -1,23 +1,26 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
+
 import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
+
+import { BookOpen, Clock, Brain, Trophy, Flame, User, Settings, LogOut, Save } from "lucide-react"
+import { toast } from "sonner"
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { BookOpen, Clock, Brain, Trophy, Flame, User, Settings, LogOut, Upload, Save } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/client"
-import { toast } from "sonner"
+
+
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 
 interface Profile {
@@ -189,12 +192,12 @@ export function ProfileClient({ user, profile, readingStats, wordStats }: Profil
 
   return (
     <div className="container py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
         <div className="lg:col-span-1">
           <Card>
             <CardContent className="p-6">
               <div className="flex flex-col items-center text-center">
-                <Avatar className="w-24 h-24 mb-4">
+                <Avatar className="mb-4 size-24">
                   <AvatarImage src={profile?.avatarUrl || ""} alt={user.email || ""} />
                   <AvatarFallback>
                     {profile?.firstName ? profile.firstName[0].toUpperCase() : user.email?.[0].toUpperCase()}
@@ -206,19 +209,19 @@ export function ProfileClient({ user, profile, readingStats, wordStats }: Profil
                     : user.email}
                 </h3>
                 {profile?.username && (
-                  <p className="text-sm text-muted-foreground">@{profile.username}</p>
+                  <p className="text-muted-foreground text-sm">@{profile.username}</p>
                 )}
-                <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                <div className="mt-4 flex flex-wrap justify-center gap-2">
                   <Badge variant="secondary">
-                    <BookOpen className="w-3 h-3 mr-1" />
+                    <BookOpen className="mr-1 size-3" />
                     {readingStats?.totalBooksRead || 0} کتاب
                   </Badge>
                   <Badge variant="secondary">
-                    <Brain className="w-3 h-3 mr-1" />
+                    <Brain className="mr-1 size-3" />
                     {wordStats?.totalWords || 0} لغت
                   </Badge>
                   <Badge variant="secondary">
-                    <Flame className="w-3 h-3 mr-1" />
+                    <Flame className="mr-1 size-3" />
                     {readingStats?.readingStreak || 0} روز متوالی
                   </Badge>
                 </div>
@@ -231,15 +234,15 @@ export function ProfileClient({ user, profile, readingStats, wordStats }: Profil
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
               <TabsTrigger value="profile">
-                <User className="w-4 h-4 mr-2" />
+                <User className="mr-2 size-4" />
                 پروفایل
               </TabsTrigger>
               <TabsTrigger value="stats">
-                <Trophy className="w-4 h-4 mr-2" />
+                <Trophy className="mr-2 size-4" />
                 آمار مطالعه
               </TabsTrigger>
               <TabsTrigger value="settings">
-                <Settings className="w-4 h-4 mr-2" />
+                <Settings className="mr-2 size-4" />
                 تنظیمات
               </TabsTrigger>
             </TabsList>
@@ -258,7 +261,7 @@ export function ProfileClient({ user, profile, readingStats, wordStats }: Profil
                       <div className="grid gap-2">
                         <Label htmlFor="avatar">تصویر پروفایل</Label>
                         <div className="flex items-center gap-4">
-                          <Avatar className="w-16 h-16">
+                          <Avatar className="size-16">
                             <AvatarImage
                               src={avatarPreview || profile?.avatarUrl || ""}
                               alt={user.email || ""}
@@ -347,7 +350,7 @@ export function ProfileClient({ user, profile, readingStats, wordStats }: Profil
                                 "در حال ذخیره..."
                               ) : (
                                 <>
-                                  <Save className="w-4 h-4 mr-2" />
+                                  <Save className="mr-2 size-4" />
                                   ذخیره تغییرات
                                 </>
                               )}
@@ -355,7 +358,7 @@ export function ProfileClient({ user, profile, readingStats, wordStats }: Profil
                           </>
                         ) : (
                           <Button type="button" onClick={() => setIsEditing(true)}>
-                            <Settings className="w-4 h-4 mr-2" />
+                            <Settings className="mr-2 size-4" />
                             ویرایش پروفایل
                           </Button>
                         )}
@@ -378,11 +381,11 @@ export function ProfileClient({ user, profile, readingStats, wordStats }: Profil
                   <div className="grid gap-8">
                     <div className="grid gap-4">
                       <h3 className="text-lg font-medium">آمار کتاب‌خوانی</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <Card>
                           <CardContent className="p-6">
                             <div className="flex flex-col items-center gap-2">
-                              <BookOpen className="w-8 h-8 text-primary" />
+                              <BookOpen className="text-primary size-8" />
                               <h4 className="text-sm font-medium">تعداد کتاب‌ها</h4>
                               <p className="text-2xl font-bold">
                                 {readingStats?.totalBooksRead || 0}
@@ -393,7 +396,7 @@ export function ProfileClient({ user, profile, readingStats, wordStats }: Profil
                         <Card>
                           <CardContent className="p-6">
                             <div className="flex flex-col items-center gap-2">
-                              <Clock className="w-8 h-8 text-primary" />
+                              <Clock className="text-primary size-8" />
                               <h4 className="text-sm font-medium">زمان مطالعه</h4>
                               <p className="text-2xl font-bold">
                                 {formatReadingTime(readingStats?.totalReadingTime || 0)}
@@ -404,7 +407,7 @@ export function ProfileClient({ user, profile, readingStats, wordStats }: Profil
                         <Card>
                           <CardContent className="p-6">
                             <div className="flex flex-col items-center gap-2">
-                              <Flame className="w-8 h-8 text-primary" />
+                              <Flame className="text-primary size-8" />
                               <h4 className="text-sm font-medium">روزهای متوالی</h4>
                               <p className="text-2xl font-bold">
                                 {readingStats?.readingStreak || 0}
@@ -419,11 +422,11 @@ export function ProfileClient({ user, profile, readingStats, wordStats }: Profil
 
                     <div className="grid gap-4">
                       <h3 className="text-lg font-medium">آمار لغات</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <Card>
                           <CardContent className="p-6">
                             <div className="flex flex-col items-center gap-2">
-                              <Brain className="w-8 h-8 text-primary" />
+                              <Brain className="text-primary size-8" />
                               <h4 className="text-sm font-medium">کل لغات</h4>
                               <p className="text-2xl font-bold">
                                 {wordStats?.totalWords || 0}
@@ -434,7 +437,7 @@ export function ProfileClient({ user, profile, readingStats, wordStats }: Profil
                         <Card>
                           <CardContent className="p-6">
                             <div className="flex flex-col items-center gap-2">
-                              <BookOpen className="w-8 h-8 text-primary" />
+                              <BookOpen className="text-primary size-8" />
                               <h4 className="text-sm font-medium">در حال یادگیری</h4>
                               <p className="text-2xl font-bold">
                                 {wordStats?.learningWords || 0}
@@ -445,7 +448,7 @@ export function ProfileClient({ user, profile, readingStats, wordStats }: Profil
                         <Card>
                           <CardContent className="p-6">
                             <div className="flex flex-col items-center gap-2">
-                              <Trophy className="w-8 h-8 text-primary" />
+                              <Trophy className="text-primary size-8" />
                               <h4 className="text-sm font-medium">یادگرفته شده</h4>
                               <p className="text-2xl font-bold">
                                 {wordStats?.knownWords || 0}
@@ -473,12 +476,12 @@ export function ProfileClient({ user, profile, readingStats, wordStats }: Profil
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="text-sm font-medium">خروج از حساب کاربری</h4>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-muted-foreground text-sm">
                           از حساب کاربری خود خارج شوید
                         </p>
                       </div>
                       <Button variant="destructive" onClick={handleSignOut}>
-                        <LogOut className="w-4 h-4 mr-2" />
+                        <LogOut className="mr-2 size-4" />
                         خروج
                       </Button>
                     </div>

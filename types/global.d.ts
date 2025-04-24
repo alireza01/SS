@@ -1,4 +1,5 @@
-import * as React from 'react'
+import type * as React from 'react'
+import 'react'
 
 declare global {
   namespace JSX {
@@ -19,4 +20,11 @@ declare global {
       li: React.DetailedHTMLProps<React.HTMLAttributes<HTMLLIElement>, HTMLLIElement>
     }
   }
-} 
+}
+
+declare module 'react' {
+  export type FormEvent<T = Element> = React.BaseSyntheticEvent<Event, EventTarget & T, HTMLElement>
+  export type ChangeEvent<T = Element> = React.BaseSyntheticEvent<Event, EventTarget & T, HTMLElement>
+}
+
+export {} 

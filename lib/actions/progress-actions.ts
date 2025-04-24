@@ -12,7 +12,7 @@ import { createServerClient } from "@/lib/supabase/server"
  */
 export async function saveReadingProgress(bookId: string, currentPage: number, readingTime = 0) {
   try {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
 
     // دریافت اطلاعات کاربر
     const {
@@ -104,7 +104,7 @@ export async function saveReadingProgress(bookId: string, currentPage: number, r
  */
 async function updateUserStats(userId: string) {
   try {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
 
     // محاسبه آمار مطالعه
     const { data: readingStats } = await supabase.rpc("calculate_user_reading_stats", { user_id_param: userId })
@@ -153,7 +153,7 @@ async function updateUserStats(userId: string) {
  */
 export async function getReadingProgress(bookId: string) {
   try {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
 
     // دریافت اطلاعات کاربر
     const {
@@ -187,7 +187,7 @@ export async function getReadingProgress(bookId: string) {
  */
 export async function saveBookmark(bookId: string, page: number, add: boolean) {
   try {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
 
     // دریافت اطلاعات کاربر
     const {

@@ -85,7 +85,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
-      <body className={`${inter.variable} ${vazirmatn.variable} font-vazirmatn text-right min-h-screen antialiased`}>
+      <body className={`${inter.variable} ${vazirmatn.variable} font-vazirmatn min-h-screen text-right antialiased`}>
         <ErrorBoundary>
           <ThemeProvider 
             attribute="class" 

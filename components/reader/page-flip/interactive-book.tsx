@@ -23,6 +23,9 @@ interface InteractiveBookProps {
   onPageChange?: (pageNumber: number) => void
   className?: string
   interactiveFlipEnabled?: boolean
+  pageFlipSpeed?: number
+  pageFlipThreshold?: number
+  pageFlipEasing?: string
 }
 
 export function InteractiveBook({
@@ -31,6 +34,9 @@ export function InteractiveBook({
   onPageChange,
   className,
   interactiveFlipEnabled = true,
+  pageFlipSpeed = 0.5, // seconds
+  pageFlipThreshold = 0.3, // percentage of page width
+  pageFlipEasing = "easeOut", // easing function
 }: InteractiveBookProps) {
   const [currentPageIndex, setCurrentPageIndex] = useState(Math.min(Math.max(initialPage - 1, 0), pages.length - 1))
   const [isFlipping, setIsFlipping] = useState(false)
@@ -38,9 +44,9 @@ export function InteractiveBook({
   const [showSettings, setShowSettings] = useState(false)
   const [settings, setSettings] = useState({
     interactiveFlipEnabled: interactiveFlipEnabled,
-    pageFlipSpeed: 0.5, // seconds
-    pageFlipThreshold: 0.3, // percentage of page width
-    pageFlipEasing: "easeOut", // easing function
+    pageFlipSpeed: pageFlipSpeed,
+    pageFlipThreshold: pageFlipThreshold,
+    pageFlipEasing: pageFlipEasing,
   })
 
   const isMobile = useMediaQuery("(max-width: 768px)")

@@ -1,13 +1,15 @@
 "use client"
 
 import { useEffect } from "react"
+
 import { Award, Calendar } from "lucide-react"
 
+import { ErrorBoundary } from "@/components/error-boundary"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { ErrorBoundary } from "@/components/error-boundary"
 import { useDailyQuiz } from "@/hooks/use-daily-quiz"
+
 import { QuizCard } from "./quiz-card"
 import { QuizResults } from "./quiz-results"
 
@@ -43,7 +45,7 @@ function DailyQuizContent({ userId }: DailyQuizProps) {
         <CardContent className="p-6">
           <div className="py-8 text-center">
             <div className="inline-block size-8 animate-spin rounded-full border-b-2 border-gray-900 dark:border-gray-100"></div>
-            <p className="mt-2 text-sm text-muted-foreground">در حال بارگذاری آزمون روزانه...</p>
+            <p className="text-muted-foreground mt-2 text-sm">در حال بارگذاری آزمون روزانه...</p>
           </div>
         </CardContent>
       </Card>
@@ -75,7 +77,7 @@ function DailyQuizContent({ userId }: DailyQuizProps) {
         <CardContent>
           <div className="space-y-4 py-6 text-center">
             <div className="flex justify-center">
-              <div className="flex size-16 items-center justify-center rounded-full bg-gold-100 text-gold-600 dark:bg-gold-900/30 dark:text-gold-400">
+              <div className="bg-gold-100 text-gold-600 dark:bg-gold-900/30 dark:text-gold-400 flex size-16 items-center justify-center rounded-full">
                 <Calendar className="size-8" />
               </div>
             </div>

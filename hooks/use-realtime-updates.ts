@@ -1,7 +1,10 @@
 import { useEffect } from 'react'
+
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+
 import type { Database } from '@/types/supabase'
+
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 type TableRow = { [key: string]: any }
 
@@ -32,7 +35,7 @@ export function useRealtimeUpdates<T extends TableRow>({
 
     const setupSubscription = async () => {
       try {
-        let query = supabase
+        const query = supabase
           .channel(`${table}-changes`)
           .on(
             'postgres_changes',

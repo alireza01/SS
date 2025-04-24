@@ -1,4 +1,3 @@
-import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'
 
 declare module 'next/navigation' {
   export interface NavigateOptions {

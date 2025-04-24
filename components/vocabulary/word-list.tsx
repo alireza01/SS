@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from 'react';
 
 import { MoreHorizontal, Pencil, Trash } from 'lucide-react';
@@ -25,26 +27,35 @@ import { createClient } from '@/lib/supabase/client';
 interface Word {
   id: string;
   word: string;
-  translation: string;
-  definition: string;
-  example: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  meaning: string;
+  example: string | null;
+  level: 'beginner' | 'intermediate' | 'advanced';
+  status: 'new' | 'learning' | 'mastered';
+  next_review_at: string | null;
+  user_id: string;
+  book_id: string | null;
   created_at: string;
   updated_at: string;
+  books?: {
+    id: string;
+    title: string;
+    slug: string;
+  } | null;
 }
 
 interface WordListProps {
   words: Word[];
-  onEdit: (word: Word) => void;
-  onDelete: (id: string) => void;
+  userId: string;
+  onEdit?: (word: Word) => void;
+  onDelete?: (id: string) => void;
 }
 
-const WordList = ({ words, onEdit, onDelete }: WordListProps) => {
+const WordList = ({ words, userId, onEdit, onDelete }: WordListProps) => {
   const [deleteWordId, setDeleteWordId] = useState<string | null>(null);
   const supabase = createClient();
 
   const handleDelete = async () => {
-    if (!deleteWordId) return;
+    if (!deleteWordId || !onDelete) return;
 
     try {
       const { error } = await supabase
@@ -64,13 +75,13 @@ const WordList = ({ words, onEdit, onDelete }: WordListProps) => {
     }
   };
 
-  const getDifficultyColor = (difficulty: Word['difficulty']) => {
-    switch (difficulty) {
-      case 'easy':
+  const getDifficultyColor = (level: Word['level']) => {
+    switch (level) {
+      case 'beginner':
         return 'bg-green-100 text-green-800';
-      case 'medium':
+      case 'intermediate':
         return 'bg-yellow-100 text-yellow-800';
-      case 'hard':
+      case 'advanced':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -83,10 +94,10 @@ const WordList = ({ words, onEdit, onDelete }: WordListProps) => {
         <TableHeader>
           <TableRow>
             <TableHead>Word</TableHead>
-            <TableHead>Translation</TableHead>
-            <TableHead>Definition</TableHead>
+            <TableHead>Meaning</TableHead>
             <TableHead>Example</TableHead>
-            <TableHead>Difficulty</TableHead>
+            <TableHead>Level</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead className="w-[100px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -94,12 +105,16 @@ const WordList = ({ words, onEdit, onDelete }: WordListProps) => {
           {words.map((word) => (
             <TableRow key={word.id}>
               <TableCell className="font-medium">{word.word}</TableCell>
-              <TableCell>{word.translation}</TableCell>
-              <TableCell>{word.definition}</TableCell>
+              <TableCell>{word.meaning}</TableCell>
               <TableCell>{word.example}</TableCell>
               <TableCell>
-                <Badge className={getDifficultyColor(word.difficulty)}>
-                  {word.difficulty}
+                <Badge className={getDifficultyColor(word.level)}>
+                  {word.level}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline">
+                  {word.status}
                 </Badge>
               </TableCell>
               <TableCell>
@@ -111,14 +126,18 @@ const WordList = ({ words, onEdit, onDelete }: WordListProps) => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEdit(word)}>
-                      <Pencil className="mr-2 size-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setDeleteWordId(word.id)}>
-                      <Trash className="mr-2 size-4" />
-                      Delete
-                    </DropdownMenuItem>
+                    {onEdit && (
+                      <DropdownMenuItem onClick={() => onEdit(word)}>
+                        <Pencil className="mr-2 size-4" />
+                        Edit
+                      </DropdownMenuItem>
+                    )}
+                    {onDelete && (
+                      <DropdownMenuItem onClick={() => setDeleteWordId(word.id)}>
+                        <Trash className="mr-2 size-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>

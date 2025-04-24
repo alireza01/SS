@@ -1,7 +1,8 @@
 "use server"
 
-import { generateContent, generateJsonContent } from "./gemini/client"
 import { GoogleGenerativeAI } from "@google/generative-ai"
+
+import { generateContent, generateJsonContent } from "./gemini/client"
 
 const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || "")
 

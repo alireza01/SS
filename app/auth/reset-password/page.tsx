@@ -1,7 +1,10 @@
-import { createServerClient } from "@/lib/supabase/app-server"
 import { redirect } from "next/navigation"
+
+
 import { ResetPasswordForm } from "@/components/auth/reset-password-form"
-import { Metadata } from "next"
+import { createServerClient } from "@/lib/supabase/app-server"
+
+import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "تغییر رمز عبور",

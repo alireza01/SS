@@ -76,10 +76,13 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
    CREATE TABLE user_words (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
      user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-     book_id UUID NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+     book_id UUID REFERENCES books(id) ON DELETE CASCADE,
      word TEXT NOT NULL,
-     status TEXT NOT NULL,
-     next_review_at TIMESTAMPTZ NOT NULL,
+     meaning TEXT NOT NULL,
+     example TEXT,
+     level TEXT NOT NULL CHECK (level IN ('beginner', 'intermediate', 'advanced')),
+     status TEXT NOT NULL CHECK (status IN ('new', 'learning', 'known')),
+     next_review_at TIMESTAMPTZ,
      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
    );
@@ -94,8 +97,10 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
      learning_words INTEGER NOT NULL DEFAULT 0,
      known_words INTEGER NOT NULL DEFAULT 0,
      review_streak INTEGER NOT NULL DEFAULT 0,
+     last_reviewed_at TIMESTAMPTZ,
      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+     UNIQUE(user_id)
    );
    ```
 
@@ -242,3 +247,86 @@ All migrations are stored in `supabase/migrations/` and are versioned with times
 6. Implement proper error handling
 7. Follow naming conventions
 8. Document all schema changes
+
+## Stored Procedures
+
+### Word Stats Management
+
+```sql
+-- Function to update word stats when word status changes
+CREATE OR REPLACE FUNCTION update_word_stats_on_status_change(
+  user_id_param UUID,
+  old_status TEXT,
+  new_status TEXT
+) RETURNS void AS $$
+BEGIN
+  -- Create stats record if it doesn't exist
+  INSERT INTO user_words_stats (user_id, total_words)
+  VALUES (user_id_param, 0)
+  ON CONFLICT (user_id) DO NOTHING;
+
+  -- Update learning words count
+  IF old_status = 'new' AND new_status = 'learning' THEN
+    UPDATE user_words_stats
+    SET learning_words = learning_words + 1
+    WHERE user_id = user_id_param;
+  ELSIF old_status = 'learning' AND new_status = 'known' THEN
+    UPDATE user_words_stats
+    SET learning_words = learning_words - 1,
+        known_words = known_words + 1
+    WHERE user_id = user_id_param;
+  ELSIF old_status = 'known' AND new_status = 'learning' THEN
+    UPDATE user_words_stats
+    SET learning_words = learning_words + 1,
+        known_words = known_words - 1
+    WHERE user_id = user_id_param;
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to update review streak
+CREATE OR REPLACE FUNCTION update_review_streak(
+  user_id_param UUID
+) RETURNS void AS $$
+DECLARE
+  last_review TIMESTAMPTZ;
+BEGIN
+  -- Get last review time
+  SELECT last_reviewed_at INTO last_review
+  FROM user_words_stats
+  WHERE user_id = user_id_param;
+
+  -- Update streak based on last review
+  UPDATE user_words_stats
+  SET last_reviewed_at = NOW(),
+      review_streak = CASE
+        WHEN last_reviewed_at IS NULL THEN 1
+        WHEN last_reviewed_at > NOW() - INTERVAL '1 day' THEN review_streak
+        WHEN last_reviewed_at > NOW() - INTERVAL '2 days' THEN review_streak + 1
+        ELSE 1
+      END
+  WHERE user_id = user_id_param;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to recalculate word stats
+CREATE OR REPLACE FUNCTION recalculate_word_stats(
+  user_id_param UUID
+) RETURNS void AS $$
+BEGIN
+  UPDATE user_words_stats
+  SET total_words = (
+    SELECT COUNT(*) FROM user_words WHERE user_id = user_id_param
+  ),
+  learning_words = (
+    SELECT COUNT(*) FROM user_words 
+    WHERE user_id = user_id_param AND status = 'learning'
+  ),
+  known_words = (
+    SELECT COUNT(*) FROM user_words 
+    WHERE user_id = user_id_param AND status = 'known'
+  )
+  WHERE user_id = user_id_param;
+END;
+$$ LANGUAGE plpgsql;
+```

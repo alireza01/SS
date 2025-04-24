@@ -18,13 +18,12 @@ interface ReadingSession {
   id: string
   book_id: string
   book_title: string
+  pages_read: number
+  reading_time: number
+  session_date: string
   book: {
     slug: string
   }
-  start_time: string
-  end_time: string
-  duration: number
-  pages_read: number
 }
 
 interface QueryResult {
@@ -35,6 +34,7 @@ interface QueryResult {
   session_date: string
   books: {
     title: string
+    slug: string
   }[] | null
 }
 
@@ -71,7 +71,7 @@ export function ReadingProgress({ userId }: ReadingProgressProps) {
             pages_read,
             reading_time,
             session_date,
-            books:books(title)
+            books:books(title, slug)
           `)
           .eq("user_id", userId)
           .gte("session_date", startDate.toISOString())
@@ -86,6 +86,9 @@ export function ReadingProgress({ userId }: ReadingProgressProps) {
           pages_read: session.pages_read,
           reading_time: session.reading_time,
           session_date: session.session_date,
+          book: {
+            slug: session.books?.[0]?.slug || ""
+          }
         }))
 
         setReadingSessions(formattedSessions)

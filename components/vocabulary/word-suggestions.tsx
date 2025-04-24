@@ -9,24 +9,25 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/client"
+import type { BaseWord} from "@/types/vocabulary";
 
-
-interface Word {
-  id: string
-  word: string
-  meaning: string
-  level: "beginner" | "intermediate" | "advanced"
-  book_id: string
-  book_title?: string
+interface RawSuggestedWord {
+  id: string;
+  word: string;
+  meaning: string;
+  example: string | null;
+  level: "beginner" | "intermediate" | "advanced";
+  book_id: string;
+  books: { title: string }[];
 }
 
 interface WordSuggestionsProps {
   userLevel: string
-  onAddWord: (word: Word) => void
+  onAddWord: (word: BaseWord) => void
 }
 
 export function WordSuggestions({ userLevel, onAddWord }: WordSuggestionsProps) {
-  const [suggestions, setSuggestions] = useState<Word[]>([])
+  const [suggestions, setSuggestions] = useState<BaseWord[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const supabase = createClient()
 
@@ -52,6 +53,7 @@ export function WordSuggestions({ userLevel, onAddWord }: WordSuggestionsProps) 
             id,
             word,
             meaning,
+            example,
             level,
             book_id,
             books (title)
@@ -68,12 +70,17 @@ export function WordSuggestions({ userLevel, onAddWord }: WordSuggestionsProps) 
 
         if (error) throw error
 
-        // Filter out words the user already has
-        const filteredSuggestions = suggestedWords
+        // Filter out words the user already has and map to BaseWord type
+        const filteredSuggestions = (suggestedWords as RawSuggestedWord[])
           .filter(word => !userWordSet.has(word.word.toLowerCase()))
           .map(word => ({
-            ...word,
-            book_title: word.books?.title
+            id: word.id,
+            word: word.word,
+            meaning: word.meaning,
+            example: word.example,
+            level: word.level,
+            book_id: word.book_id,
+            book_title: word.books?.[0]?.title
           }))
 
         setSuggestions(filteredSuggestions)
@@ -88,7 +95,7 @@ export function WordSuggestions({ userLevel, onAddWord }: WordSuggestionsProps) 
     fetchSuggestions()
   }, [supabase, userLevel])
 
-  const handleAddWord = async (word: Word) => {
+  const handleAddWord = async (word: BaseWord) => {
     try {
       const { data: userData } = await supabase.auth.getUser()
       if (!userData.user) return

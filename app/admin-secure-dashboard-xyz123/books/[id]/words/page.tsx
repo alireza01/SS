@@ -1,14 +1,17 @@
-import { redirect } from "next/navigation"
+import { NextResponse } from "next/server"
 
 import { WordDefinitionGenerator } from "@/components/ai/word-definition-generator"
 import { WordsList } from "@/components/words-list"
 import { createServerClient } from "@/lib/supabase/server"
+import type { Database } from "@/types/supabase"
 
 interface WordsPageProps {
   params: {
     slug: string
   }
 }
+
+type Book = Database["public"]["Tables"]["books"]["Row"]
 
 export default async function WordsPage({ params }: WordsPageProps) {
   const { slug } = params
@@ -20,25 +23,25 @@ export default async function WordsPage({ params }: WordsPageProps) {
   } = await supabase.auth.getSession()
 
   if (!session) {
-    redirect("/auth/login?callbackUrl=/admin-secure-dashboard-xyz123")
+    return NextResponse.redirect(new URL("/auth/login?callbackUrl=/admin-secure-dashboard-xyz123", process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"))
   }
 
   // دریافت اطلاعات کتاب
-  const { data: book } = await supabase
+  const { data: bookData } = await supabase
     .from("books")
-    .select("id, title, author")
+    .select("*")  // Select all fields to match the Book type
     .eq("slug", slug)
     .single()
 
-  if (!book) {
-    redirect("/admin-secure-dashboard-xyz123/books")
+  if (!bookData) {
+    return NextResponse.redirect(new URL("/admin-secure-dashboard-xyz123/books", process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"))
   }
 
   // دریافت کلمات دشوار کتاب
   const { data: words } = await supabase
     .from("book_words")
     .select("*")
-    .eq("bookId", book.id)
+    .eq("bookId", bookData.id)
     .order("createdAt", { ascending: false })
 
   return (
@@ -47,18 +50,18 @@ export default async function WordsPage({ params }: WordsPageProps) {
         <div>
           <h1 className="text-2xl font-bold">مدیریت واژگان کتاب</h1>
           <p className="text-muted-foreground">
-            {book.title} - {book.author}
+            {bookData.title} - {bookData.author}
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
-          <WordDefinitionGenerator bookId={book.id} />
+          <WordDefinitionGenerator bookId={bookData.id} />
         </div>
 
         <div>
-          <WordsList words={words || []} bookId={book.id} />
+          <WordsList words={words || []} bookId={bookData.id} />
         </div>
       </div>
     </div>

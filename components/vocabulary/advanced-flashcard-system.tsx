@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
+
 import { motion, AnimatePresence } from 'framer-motion'
 import { Volume2, ArrowLeft, ArrowRight, Check, X } from 'lucide-react'
 import { toast } from 'sonner'
@@ -376,21 +377,21 @@ export function AdvancedFlashcardSystem({ words, userLevel, onComplete, onUpdate
               <Button
                 variant="outline"
                 onClick={() => handleConfidenceSelect('low')}
-                className="bg-red-50 hover:bg-red-100 text-red-700"
+                className="bg-red-50 text-red-700 hover:bg-red-100"
               >
                 Need More Practice
               </Button>
               <Button
                 variant="outline"
                 onClick={() => handleConfidenceSelect('medium')}
-                className="bg-yellow-50 hover:bg-yellow-100 text-yellow-700"
+                className="bg-yellow-50 text-yellow-700 hover:bg-yellow-100"
               >
                 Almost Got It
               </Button>
               <Button
                 variant="outline"
                 onClick={() => handleConfidenceSelect('high')}
-                className="bg-green-50 hover:bg-green-100 text-green-700"
+                className="bg-green-50 text-green-700 hover:bg-green-100"
               >
                 Got It!
               </Button>

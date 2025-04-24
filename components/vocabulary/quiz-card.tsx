@@ -36,9 +36,9 @@ export function QuizCard({
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold">آزمون روزانه</h2>
-            <p className="text-sm text-muted-foreground">معنی کلمه را انتخاب کنید</p>
+            <p className="text-muted-foreground text-sm">معنی کلمه را انتخاب کنید</p>
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-muted-foreground text-sm">
             {currentQuestionIndex + 1} از {totalQuestions}
           </div>
         </div>
@@ -51,7 +51,7 @@ export function QuizCard({
         <div className="space-y-6">
           <div className="py-4 text-center">
             <h3 className="mb-2 text-2xl font-bold">{currentQuestion.word}</h3>
-            <p className="text-sm text-muted-foreground">معنی این کلمه چیست؟</p>
+            <p className="text-muted-foreground text-sm">معنی این کلمه چیست؟</p>
           </div>
 
           <div className="grid grid-cols-1 gap-3">
@@ -90,7 +90,7 @@ export function QuizCard({
             ))}
           </div>
 
-          <div className="flex items-center justify-between pt-4 text-sm text-muted-foreground">
+          <div className="text-muted-foreground flex items-center justify-between pt-4 text-sm">
             <div>امتیاز: {score}</div>
             <div>استریک: {streak} روز</div>
           </div>

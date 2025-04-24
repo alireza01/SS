@@ -1,13 +1,9 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
+
+import { Clock, BookOpen, Lightbulb, BarChart3, PieChartIcon, LineChartIcon } from "lucide-react"
 import {
   BarChart,
   Bar,
@@ -23,7 +19,15 @@ import {
   Line,
   Legend,
 } from "recharts"
-import { Clock, BookOpen, BookMarked, Lightbulb, Calendar, BarChart3, PieChartIcon, LineChartIcon } from "lucide-react"
+import { toast } from "sonner"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { createClient } from "@/lib/supabase/client"
+
+
+
 
 interface ReadingStatsAdvancedProps {
   userId: string
@@ -111,8 +115,8 @@ export function ReadingStatsAdvanced({ userId }: ReadingStatsAdvancedProps) {
           <CardTitle>آمار مطالعه</CardTitle>
           <CardDescription>در حال بارگذاری آمار...</CardDescription>
         </CardHeader>
-        <CardContent className="h-80 flex items-center justify-center">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <CardContent className="flex h-80 items-center justify-center">
+          <div className="border-primary size-12 animate-spin rounded-full border-4 border-t-transparent"></div>
         </CardContent>
       </Card>
     )
@@ -122,7 +126,7 @@ export function ReadingStatsAdvanced({ userId }: ReadingStatsAdvancedProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          <BarChart3 className="mr-2 h-5 w-5" />
+          <BarChart3 className="mr-2 size-5" />
           آمار مطالعه پیشرفته
         </CardTitle>
         <CardDescription>تحلیل جامع فعالیت‌های مطالعه و یادگیری شما</CardDescription>
@@ -130,28 +134,28 @@ export function ReadingStatsAdvanced({ userId }: ReadingStatsAdvancedProps) {
         <Tabs defaultValue="time" value={activeTab} onValueChange={setActiveTab} className="mt-4">
           <TabsList className="grid grid-cols-3">
             <TabsTrigger value="time">
-              <Clock className="mr-2 h-4 w-4" />
+              <Clock className="mr-2 size-4" />
               زمان مطالعه
             </TabsTrigger>
             <TabsTrigger value="books">
-              <BookOpen className="mr-2 h-4 w-4" />
+              <BookOpen className="mr-2 size-4" />
               کتاب‌ها
             </TabsTrigger>
             <TabsTrigger value="words">
-              <Lightbulb className="mr-2 h-4 w-4" />
+              <Lightbulb className="mr-2 size-4" />
               واژگان
             </TabsTrigger>
           </TabsList>
         </Tabs>
 
-        <div className="flex mt-2">
+        <div className="mt-2 flex">
           <Button
             variant={activeChart === "bar" ? "default" : "outline"}
             size="sm"
             onClick={() => setActiveChart("bar")}
             className="mr-2"
           >
-            <BarChart3 className="mr-1 h-4 w-4" />
+            <BarChart3 className="mr-1 size-4" />
             نمودار ستونی
           </Button>
           <Button
@@ -160,7 +164,7 @@ export function ReadingStatsAdvanced({ userId }: ReadingStatsAdvancedProps) {
             onClick={() => setActiveChart("pie")}
             className="mr-2"
           >
-            <PieChartIcon className="mr-1 h-4 w-4" />
+            <PieChartIcon className="mr-1 size-4" />
             نمودار دایره‌ای
           </Button>
           <Button
@@ -168,7 +172,7 @@ export function ReadingStatsAdvanced({ userId }: ReadingStatsAdvancedProps) {
             size="sm"
             onClick={() => setActiveChart("line")}
           >
-            <LineChartIcon className="mr-1 h-4 w-4" />
+            <LineChartIcon className="mr-1 size-4" />
             نمودار خطی
           </Button>
         </div>

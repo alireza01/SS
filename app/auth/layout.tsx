@@ -2,6 +2,16 @@ import type { ReactNode } from "react"
 
 import { BookOpen } from "lucide-react"
 
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: {
+    default: "احراز هویت | کتاب‌یار",
+    template: "%s | کتاب‌یار",
+  },
+  description: "ورود، ثبت‌نام و مدیریت حساب کاربری در کتاب‌یار",
+}
+
 interface AuthLayoutProps {
   children: ReactNode
 }

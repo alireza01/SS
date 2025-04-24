@@ -1,13 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
+
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+
 import { motion } from "framer-motion"
 import { Book, BookOpen, User, Home, Menu } from "lucide-react"
+
+import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { UserAccountNav } from "@/components/user-account-nav"
 import { useSupabaseAuth } from "@/hooks/use-supabase-auth"
 
@@ -38,18 +41,18 @@ export function DashboardHeader() {
       transition={{ duration: 0.3 }}
       className={`sticky top-0 z-40 w-full transition-all duration-200 ${
         isScrolled 
-          ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm' 
+          ? 'bg-white/80 shadow-sm backdrop-blur-md dark:bg-gray-900/80' 
           : 'bg-transparent'
       }`}
     >
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-6 md:gap-10">
           <Link href="/" className="flex items-center space-x-2">
-            <BookOpen className="h-6 w-6" />
-            <span className="font-bold text-xl hidden md:inline-block">کتاب‌یار</span>
+            <BookOpen className="size-6" />
+            <span className="hidden text-xl font-bold md:inline-block">کتاب‌یار</span>
           </Link>
           
-          <nav className="hidden md:flex items-center space-x-6 rtl:space-x-reverse">
+          <nav className="hidden items-center space-x-6 md:flex rtl:space-x-reverse">
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
@@ -58,13 +61,13 @@ export function DashboardHeader() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center text-sm font-medium transition-colors hover:text-primary ${
+                  className={`hover:text-primary flex items-center text-sm font-medium transition-colors ${
                     isActive 
                       ? 'text-primary' 
                       : 'text-muted-foreground'
                   }`}
                 >
-                  <Icon className="h-4 w-4 ml-2" />
+                  <Icon className="ml-2 size-4" />
                   {item.label}
                 </Link>
               )
@@ -86,15 +89,15 @@ export function DashboardHeader() {
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
+                <Menu className="size-5" />
                 <span className="sr-only">منو</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="pr-0">
               <div className="px-7">
-                <Link href="/" className="flex items-center gap-2 mb-8 mt-4">
-                  <BookOpen className="h-6 w-6" />
-                  <span className="font-bold text-xl">کتاب‌یار</span>
+                <Link href="/" className="mb-8 mt-4 flex items-center gap-2">
+                  <BookOpen className="size-6" />
+                  <span className="text-xl font-bold">کتاب‌یار</span>
                 </Link>
                 
                 <nav className="flex flex-col gap-4">
@@ -106,13 +109,13 @@ export function DashboardHeader() {
                       <Link
                         key={item.href}
                         href={item.href}
-                        className={`flex items-center text-sm font-medium transition-colors hover:text-primary ${
+                        className={`hover:text-primary flex items-center text-sm font-medium transition-colors ${
                           isActive 
                             ? 'text-primary' 
                             : 'text-muted-foreground'
                         }`}
                       >
-                        <Icon className="h-4 w-4 ml-2" />
+                        <Icon className="ml-2 size-4" />
                         {item.label}
                       </Link>
                     )

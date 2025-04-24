@@ -197,28 +197,28 @@ export function WordTooltip({ word, meaning, explanation, level, position, onClo
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="fixed z-50 bg-white dark:bg-gray-900 rounded-lg shadow-lg p-4 min-w-[300px] max-w-[400px]"
+      className="fixed z-50 min-w-[300px] max-w-[400px] rounded-lg bg-white p-4 shadow-lg dark:bg-gray-900"
       style={{
         left: position.x,
         top: position.y,
       }}
     >
-      <div className="flex items-start justify-between mb-4">
+      <div className="mb-4 flex items-start justify-between">
         <div>
           <h3 className="text-lg font-semibold">{word}</h3>
-          <p className="text-sm text-muted-foreground">{meaning}</p>
+          <p className="text-muted-foreground text-sm">{meaning}</p>
         </div>
         <Badge className={getLevelClass(level)}>{getLevelText(level)}</Badge>
       </div>
 
-      <p className="text-sm mb-4">{explanation}</p>
+      <p className="mb-4 text-sm">{explanation}</p>
 
       {showExamples && (
         <div className="mb-4">
-          <h4 className="text-sm font-medium mb-2">مثال‌ها:</h4>
+          <h4 className="mb-2 text-sm font-medium">مثال‌ها:</h4>
           <ul className="space-y-2">
             {examples.map((example, index) => (
-              <li key={index} className="text-sm text-muted-foreground">
+              <li key={index} className="text-muted-foreground text-sm">
                 {example}
               </li>
             ))}
@@ -228,7 +228,7 @@ export function WordTooltip({ word, meaning, explanation, level, position, onClo
 
       <div className="flex items-center gap-2">
         <Button size="sm" variant="outline" onClick={playPronunciation} disabled={isPlaying}>
-          <Volume2 className="h-4 w-4 mr-1" />
+          <Volume2 className="mr-1 size-4" />
           تلفظ
         </Button>
 
@@ -237,7 +237,7 @@ export function WordTooltip({ word, meaning, explanation, level, position, onClo
         </Button>
 
         <Button size="sm" variant="outline" onClick={searchOnline}>
-          <ExternalLink className="h-4 w-4 mr-1" />
+          <ExternalLink className="mr-1 size-4" />
           دیکشنری
         </Button>
 
@@ -246,12 +246,12 @@ export function WordTooltip({ word, meaning, explanation, level, position, onClo
             "در حال پردازش..."
           ) : isSaved ? (
             <>
-              <Check className="h-4 w-4 mr-1" />
+              <Check className="mr-1 size-4" />
               ذخیره شده
             </>
           ) : (
             <>
-              <Plus className="h-4 w-4 mr-1" />
+              <Plus className="mr-1 size-4" />
               ذخیره
             </>
           )}

@@ -1,6 +1,8 @@
 import { createServerClient as createClient } from "@supabase/ssr"
-import type { GetServerSidePropsContext } from "next"
+
 import type { Database } from "@/types/supabase"
+
+import type { GetServerSidePropsContext } from "next"
 
 /**
  * Creates a Supabase client for Pages Router getServerSideProps

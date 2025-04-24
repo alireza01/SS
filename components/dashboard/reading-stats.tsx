@@ -7,8 +7,19 @@ interface ReadingStatsProps {
   userId: string
 }
 
+type SupabaseProgress = {
+  id: string
+  current_page: number
+  completion_percentage: number
+  last_read_at: string
+  books: {
+    id: string
+    page_count: number
+  }
+}
+
 export async function ReadingStats({ userId }: ReadingStatsProps) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   // دریافت آمار مطالعه کاربر
   const { data: userProgress } = await supabase
@@ -23,12 +34,12 @@ export async function ReadingStats({ userId }: ReadingStatsProps) {
         page_count
       )
     `)
-    .eq("user_id", userId)
+    .eq("user_id", userId) as { data: SupabaseProgress[] | null }
 
   // محاسبه آمار
   const totalBooks = userProgress?.length || 0
-  const completedBooks = userProgress?.filter((p) => p.completion_percentage >= 100).length || 0
-  const totalPages = userProgress?.reduce((sum: number, p: { current_page: number }) => sum + p.current_page, 0) || 0
+  const completedBooks = userProgress?.filter(p => p.completion_percentage >= 100).length || 0
+  const totalPages = userProgress?.reduce((sum, p) => sum + p.current_page, 0) || 0
 
   // محاسبه روزهای متوالی مطالعه (فرضی)
   const streak = 5

@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation"
 
 import { useTheme } from "next-themes"
 
-import { toast } from "@/components/ui/use-toast"
 import { createClient } from "@/lib/supabase/client"
 
 interface Book {

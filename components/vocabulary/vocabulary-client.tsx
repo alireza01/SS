@@ -1,30 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import * as React from "react"
 
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/client"
+import type { BaseWord, Word, WordStats } from "@/types/vocabulary"
 
 import { WordSuggestions } from "./word-suggestions"
-
-interface Word {
-  id: string
-  userId: string
-  word: string
-  meaning: string
-  level: string
-  status: string
-  nextReviewAt: string
-  createdAt: string
-}
-
-interface WordStats {
-  totalWords: number
-  learningWords: number
-  knownWords: number
-  reviewStreak: number
-}
 
 interface VocabularyClientProps {
   userWords: Word[]
@@ -37,23 +21,22 @@ export function VocabularyClient({ userWords: initialWords, wordStats, userLevel
   const searchParams = useSearchParams()
   const supabase = createClient()
   
-  // وضعیت‌های کامپوننت
-  const [words, setWords] = useState<Word[]>(initialWords)
-  const [filteredWords, setFilteredWords] = useState<Word[]>(initialWords)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedStatus, setSelectedStatus] = useState<string>("all")
-  const [selectedLevel, setSelectedLevel] = useState<string>("all")
-  const [sortBy, setSortBy] = useState<string>("newest")
-  const [isLoading, setIsLoading] = useState(false)
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<string>("all")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [wordsPerPage, setWordsPerPage] = useState(20)
-  const [totalPages, setTotalPages] = useState(1)
-  const [reviewCount, setReviewCount] = useState(0)
+  const [words, setWords] = React.useState<Word[]>(initialWords)
+  const [filteredWords, setFilteredWords] = React.useState<Word[]>(initialWords)
+  const [searchQuery, setSearchQuery] = React.useState("")
+  const [selectedStatus, setSelectedStatus] = React.useState<string>("all")
+  const [selectedLevel, setSelectedLevel] = React.useState<string>("all")
+  const [sortBy, setSortBy] = React.useState<string>("newest")
+  const [isLoading, setIsLoading] = React.useState(false)
+  const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false)
+  const [activeTab, setActiveTab] = React.useState<string>("all")
+  const [currentPage, setCurrentPage] = React.useState(1)
+  const [wordsPerPage, setWordsPerPage] = React.useState(20)
+  const [totalPages, setTotalPages] = React.useState(1)
+  const [reviewCount, setReviewCount] = React.useState(0)
   
   // دریافت پارامترهای URL
-  useEffect(() => {
+  React.useEffect(() => {
     const status = searchParams.get("status") || "all"
     const level = searchParams.get("level") || "all"
     const sort = searchParams.get("sort") || "newest"
@@ -70,14 +53,19 @@ export function VocabularyClient({ userWords: initialWords, wordStats, userLevel
   }, [searchParams])
   
   // فیلتر کردن کلمات بر اساس معیارهای انتخاب شده
-  useEffect(() => {
+  React.useEffect(() => {
     setIsLoading(true)
     
     let filtered = [...words]
+    const now = new Date()
     
     // فیلتر بر اساس تب فعال
     if (activeTab === "review") {
-      filtered = filtered.filter(word => new Date(word.nextReviewAt) <= new Date())
+      filtered = filtered.filter(word => {
+        if (!word.nextReviewAt) return false;
+        const reviewDate = new Date(word.nextReviewAt);
+        return !isNaN(reviewDate.getTime()) && reviewDate <= now;
+      });
     } else if (activeTab === "learning") {
       filtered = filtered.filter(word => word.status === "learning")
     } else if (activeTab === "known") {
@@ -104,21 +92,27 @@ export function VocabularyClient({ userWords: initialWords, wordStats, userLevel
     }
     
     // مرتب‌سازی
+    const getValidDate = (dateStr: string | null | undefined) => {
+      if (!dateStr) return 0;
+      const date = new Date(dateStr);
+      return isNaN(date.getTime()) ? 0 : date.getTime();
+    };
+
     switch (sortBy) {
       case "newest":
-        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        break
+        filtered.sort((a, b) => getValidDate(b.createdAt) - getValidDate(a.createdAt));
+        break;
       case "oldest":
-        filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-        break
+        filtered.sort((a, b) => getValidDate(a.createdAt) - getValidDate(b.createdAt));
+        break;
       case "alphabetical":
-        filtered.sort((a, b) => a.word.localeCompare(b.word))
-        break
+        filtered.sort((a, b) => a.word.localeCompare(b.word));
+        break;
       case "review_date":
-        filtered.sort((a, b) => new Date(a.nextReviewAt).getTime() - new Date(b.nextReviewAt).getTime())
-        break
+        filtered.sort((a, b) => getValidDate(a.nextReviewAt) - getValidDate(b.nextReviewAt));
+        break;
       default:
-        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        filtered.sort((a, b) => getValidDate(b.createdAt) - getValidDate(a.createdAt));
     }
     
     // صفحه‌بندی
@@ -132,14 +126,18 @@ export function VocabularyClient({ userWords: initialWords, wordStats, userLevel
     setFilteredWords(paginatedWords)
     
     // محاسبه تعداد کلمات نیازمند مرور
-    const reviewableWords = words.filter(word => new Date(word.nextReviewAt) <= new Date())
+    const reviewableWords = words.filter(word => {
+      if (!word.nextReviewAt) return false;
+      const reviewDate = new Date(word.nextReviewAt);
+      return !isNaN(reviewDate.getTime()) && reviewDate <= now;
+    });
     setReviewCount(reviewableWords.length)
     
     setIsLoading(false)
   }, [words, searchQuery, selectedStatus, selectedLevel, sortBy, currentPage, wordsPerPage, activeTab])
   
   // به‌روزرسانی URL با پارامترهای فیلتر
-  useEffect(() => {
+  React.useEffect(() => {
     const params = new URLSearchParams()
     
     if (selectedStatus !== "all") params.set("status", selectedStatus)
@@ -150,7 +148,7 @@ export function VocabularyClient({ userWords: initialWords, wordStats, userLevel
     if (activeTab !== "all") params.set("tab", activeTab)
     
     const url = `/vocabulary${params.toString() ? `?${params.toString()}` : ""}`
-    router.push(url, { scroll: false })
+    router.push(url)
   }, [router, selectedStatus, selectedLevel, sortBy, currentPage, searchQuery, activeTab])
   
   // پاک کردن همه فیلترها
@@ -188,9 +186,35 @@ export function VocabularyClient({ userWords: initialWords, wordStats, userLevel
     }
   }
 
-  const handleAddWord = (newWord: Word) => {
-    setWords(prev => [newWord, ...prev])
+  const handleAddWord = async (newWord: BaseWord) => {
+    try {
+      const { data: userData } = await supabase.auth.getUser()
+      if (!userData.user) return
+
+      const vocabularyWord: Word = {
+        ...newWord,
+        userId: userData.user.id,
+        status: "learning",
+        nextReviewAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      }
+
+      setWords((prevWords: Word[]) => [vocabularyWord, ...prevWords])
+    } catch (error) {
+      console.error("Error handling word addition:", error)
+    }
   }
+
+  const _wordStats = wordStats
+  const _filteredWords = filteredWords
+  const _isLoading = isLoading
+  const _isAddDialogOpen = isAddDialogOpen
+  const _setIsAddDialogOpen = setIsAddDialogOpen
+  const _setWordsPerPage = setWordsPerPage
+  const _reviewCount = reviewCount
+  const _clearAllFilters = clearAllFilters
+  const _changePage = changePage
+  const _addWord = addWord
 
   return (
     <div className="space-y-6">

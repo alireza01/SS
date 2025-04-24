@@ -1,12 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
+
 import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
-import { type Book as BaseBook } from "@/types/books"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { createClient } from "@/lib/supabase/client"
 
 interface Book {
   id: string
@@ -112,7 +111,7 @@ export function Categories() {
             <Skeleton key={i} className="h-10 w-24" />
           ))}
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           {[...Array(8)].map((_, i) => (
             <Skeleton key={i} className="h-48" />
           ))}
@@ -133,22 +132,22 @@ export function Categories() {
       </TabsList>
 
       <TabsContent value={activeCategory} className="mt-6">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           {filteredBooks.map((book) => (
             <Card key={book.id} className="overflow-hidden">
-              <div className="aspect-[2/3] relative">
+              <div className="relative aspect-[2/3]">
                 <img
                   src={book.coverImage || "/images/book-placeholder.svg"}
                   alt={book.title}
-                  className="object-cover w-full h-full"
+                  className="size-full object-cover"
                 />
-                <div className="absolute top-2 right-2 bg-white/90 dark:bg-gray-800/90 rounded-full px-2 py-1 text-xs font-medium">
+                <div className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-1 text-xs font-medium dark:bg-gray-800/90">
                   {book.rating?.toFixed(1) || "N/A"}
                 </div>
               </div>
               <div className="p-3">
-                <h3 className="font-medium text-sm line-clamp-1">{book.title}</h3>
-                <p className="text-xs text-muted-foreground">{book.author}</p>
+                <h3 className="line-clamp-1 text-sm font-medium">{book.title}</h3>
+                <p className="text-muted-foreground text-xs">{book.author}</p>
               </div>
             </Card>
           ))}

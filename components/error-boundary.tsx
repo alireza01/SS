@@ -3,7 +3,6 @@
 import { Component, type ReactNode } from "react"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface Props {
   children: ReactNode
@@ -12,40 +11,41 @@ interface Props {
 
 interface State {
   hasError: boolean
-  error: Error | null
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false,
-    error: null,
+  constructor(props: Props) {
+    super(props)
+    this.state = { hasError: false }
   }
 
-  public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error }
+  static getDerivedStateFromError(_: Error) {
+    return { hasError: true }
   }
 
-  public render() {
+  componentDidCatch(error: Error) {
+    console.error("Error caught by error boundary:", error)
+  }
+
+  render() {
     if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback
-      }
-
-      return (
-        <Card className="mx-auto max-w-2xl">
-          <CardHeader>
-            <CardTitle>خطایی رخ داد</CardTitle>
-            <CardDescription>متأسفانه در اجرای برنامه خطایی رخ داده است.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                {this.state.error?.message || "خطای ناشناخته"}
-              </p>
-              <Button onClick={() => window.location.reload()}>تلاش مجدد</Button>
-            </div>
-          </CardContent>
-        </Card>
+      return this.props.fallback || (
+        <div className="animate-in fade-in-50 flex min-h-[400px] w-full flex-col items-center justify-center rounded-md border border-dashed p-8 text-center">
+          <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
+            <h2 className="mb-2 text-xl font-semibold">خطایی رخ داد</h2>
+            <p className="text-muted-foreground mb-4 text-sm">
+              متأسفانه خطایی در اجرای برنامه رخ داده است. لطفاً صفحه را مجدداً بارگذاری کنید.
+            </p>
+            <Button
+              onClick={() => {
+                this.setState({ hasError: false })
+                window.location.reload()
+              }}
+            >
+              تلاش مجدد
+            </Button>
+          </div>
+        </div>
       )
     }
 

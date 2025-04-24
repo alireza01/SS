@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, ReactNode } from "react"
+import { useState } from "react"
 
 import Link from "next/link"
-import { useRouter, usePathname } from "next/navigation"
-import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 import { MoreHorizontal, Pencil, Trash, Search, BookOpen, FileText, Eye, Filter } from "lucide-react"
+import { toast } from "sonner"
+
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -189,7 +190,7 @@ export function BooksTable({ books: initialBooks }: BooksTableProps) {
             {filteredBooks.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="py-8 text-center">
-                  <div className="flex flex-col items-center justify-center text-muted-foreground">
+                  <div className="text-muted-foreground flex flex-col items-center justify-center">
                     <BookOpen className="mb-2 size-12 opacity-20" />
                     <p>کتابی یافت نشد</p>
                     <p className="text-sm">می‌توانید کتاب جدیدی اضافه کنید یا معیارهای جستجو را تغییر دهید.</p>

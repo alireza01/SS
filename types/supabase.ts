@@ -35,37 +35,102 @@ export interface Database {
           updated_at?: string
         }
       }
-      books: {
+      settings: {
         Row: {
           id: string
-          title: string
-          author: string
-          description: string | null
-          cover_url: string | null
-          content_url: string
-          level: string | null
+          site_name: string
+          site_description: string
+          allow_registration: boolean
+          maintenance_mode: boolean
+          smtp_host: string | null
+          smtp_port: number | null
+          smtp_username: string | null
+          smtp_password: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
-          title: string
-          author: string
-          description?: string | null
-          cover_url?: string | null
-          content_url: string
-          level?: string | null
+          site_name: string
+          site_description: string
+          allow_registration?: boolean
+          maintenance_mode?: boolean
+          smtp_host?: string | null
+          smtp_port?: number | null
+          smtp_username?: string | null
+          smtp_password?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
+          site_name?: string
+          site_description?: string
+          allow_registration?: boolean
+          maintenance_mode?: boolean
+          smtp_host?: string | null
+          smtp_port?: number | null
+          smtp_username?: string | null
+          smtp_password?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      books: {
+        Row: {
+          id: string
+          slug: string
+          title: string
+          author: string
+          description: string | null
+          cover_image: string | null
+          language: string
+          level: "beginner" | "intermediate" | "advanced"
+          total_pages: number
+          is_premium: boolean
+          is_active: boolean
+          read_count: number
+          rating: number | null
+          category_id: string | null
+          published_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          title: string
+          author: string
+          description?: string | null
+          cover_image?: string | null
+          language?: string
+          level?: "beginner" | "intermediate" | "advanced"
+          total_pages?: number
+          is_premium?: boolean
+          is_active?: boolean
+          read_count?: number
+          rating?: number | null
+          category_id?: string | null
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
           title?: string
           author?: string
           description?: string | null
-          cover_url?: string | null
-          content_url?: string
-          level?: string | null
+          cover_image?: string | null
+          language?: string
+          level?: "beginner" | "intermediate" | "advanced"
+          total_pages?: number
+          is_premium?: boolean
+          is_active?: boolean
+          read_count?: number
+          rating?: number | null
+          category_id?: string | null
+          published_at?: string | null
           created_at?: string
           updated_at?: string
         }

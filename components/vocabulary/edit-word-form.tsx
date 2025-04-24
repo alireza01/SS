@@ -1,22 +1,14 @@
 "use client"
 
-import React, { useEffect } from 'react'
+import React from 'react'
 
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
 import { Button } from '@/components/ui/button'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { createClient } from '@/lib/supabase/client'
@@ -32,134 +24,100 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>
 
 interface EditWordFormProps {
-  wordId: string
-  initialData: FormValues
-  onSuccess?: () => void
+  word: {
+    id: string
+    word: string
+    meaning: string
+    example: string | null
+    level: string
+    status: string
+    nextReviewAt: string | null
+    createdAt: string
+    books: {
+      id: string
+      title: string
+    } | null
+  }
+  onUpdate: (updatedWord: any) => void
+  onClose: () => void
 }
 
-const EditWordForm = ({ wordId, initialData, onSuccess }: EditWordFormProps) => {
+const EditWordForm = ({ word, onUpdate, onClose }: EditWordFormProps) => {
   const supabase = createClient()
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: initialData,
+  const form = useForm({
+    defaultValues: {
+      word: word.word,
+      meaning: word.meaning,
+      example: word.example || '',
+      level: word.level,
+    }
   })
 
-  useEffect(() => {
-    form.reset(initialData)
-  }, [form, initialData])
-
-  const onSubmit = async (data: FormValues) => {
+  const onSubmit = async (data: any) => {
     try {
       const { error } = await supabase
-        .from('vocabulary')
+        .from('user_words')
         .update({
           word: data.word,
-          translation: data.translation,
-          definition: data.definition,
-          example: data.example,
-          difficulty: data.difficulty,
-          updated_at: new Date().toISOString(),
+          meaning: data.meaning,
+          example: data.example || null,
+          level: data.level,
+          updatedAt: new Date().toISOString(),
         })
-        .eq('id', wordId)
+        .eq('id', word.id)
 
       if (error) throw error
 
-      toast.success('Word updated successfully')
-      onSuccess?.()
-    } catch (error: any) {
+      onUpdate({ ...word, ...data })
+      onClose()
+      toast.success('واژه با موفقیت به‌روزرسانی شد')
+    } catch (error) {
       console.error('Error updating word:', error)
-      toast.error(error.message || 'Failed to update word')
+      toast.error('خطا در به‌روزرسانی واژه')
     }
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="word"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Word</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter word" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="translation"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Translation</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter translation" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="definition"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Definition</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Enter definition" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="example"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Example</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Enter example usage" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="difficulty"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Difficulty</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select difficulty" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" className="w-full">
-          Update word
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="word">واژه</Label>
+          <Input id="word" {...form.register('word')} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="meaning">معنی</Label>
+          <Input id="meaning" {...form.register('meaning')} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="example">مثال</Label>
+          <Textarea id="example" {...form.register('example')} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="level">سطح</Label>
+          <Select
+            value={form.watch('level')}
+            onValueChange={(value) => form.setValue('level', value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="انتخاب سطح" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="beginner">مبتدی</SelectItem>
+              <SelectItem value="intermediate">متوسط</SelectItem>
+              <SelectItem value="advanced">پیشرفته</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={onClose} type="button">
+          انصراف
         </Button>
-      </form>
-    </Form>
+        <Button type="submit">
+          ذخیره تغییرات
+        </Button>
+      </div>
+    </form>
   )
 }
 

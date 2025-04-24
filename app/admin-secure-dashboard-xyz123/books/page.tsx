@@ -2,9 +2,9 @@ import { Suspense } from "react"
 
 import Link from "next/link"
 
+
 import { Plus, MoreVertical, Pencil, Trash2, Eye } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -22,7 +22,9 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { createServerClient } from "@/lib/supabase/app-server"
-import type { Book } from "@/types/books"
+import type { Database } from "@/types/supabase"
+
+type Book = Database["public"]["Tables"]["books"]["Row"]
 
 // Loading skeleton for the books table
 function BooksTableSkeleton() {
@@ -39,28 +41,38 @@ function BooksTableSkeleton() {
 }
 
 // Books table with real data
-async function BooksTable() {
-  const supabase = createServerClient()
-
-  const { data: books } = await supabase
+async function BooksTable({ searchQuery = "" }: { searchQuery?: string }) {
+  const supabase = await createServerClient()
+  
+  let query = supabase
     .from("books")
-    .select(`
-      *,
-      book_statistics (
-        total_readers,
-        completed_readers,
-        average_progress
-      )
-    `)
-    .order("created_at", { ascending: false })
+    .select<string, Book>()
+    
+  if (searchQuery) {
+    query = query.or(`title.ilike.%${searchQuery}%,author.ilike.%${searchQuery}%`)
+  }
+  
+  const { data: books, error } = await query.order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("Error fetching books:", error)
+    return <div className="text-red-500">Failed to load books</div>
+  }
+
+  if (!books || books.length === 0) {
+    return <div className="text-muted-foreground">No books found</div>
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Input
-          placeholder="جستجو در کتاب‌ها..."
-          className="w-64"
-        />
+        <form action="" className="w-64">
+          <Input
+            name="search"
+            placeholder="جستجو در کتاب‌ها..."
+            defaultValue={searchQuery}
+          />
+        </form>
         <Link href="/admin-secure-dashboard-xyz123/books/add">
           <Button>
             <Plus className="ml-2 size-4" />
@@ -83,31 +95,34 @@ async function BooksTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {books?.map((book: Book) => (
+            {books.map((book: Book) => (
               <TableRow key={book.id}>
                 <TableCell className="font-medium">{book.title}</TableCell>
                 <TableCell>{book.author}</TableCell>
                 <TableCell>
-                  <Badge variant={
-                    book.difficulty_level === "beginner" ? "default" :
-                    book.difficulty_level === "intermediate" ? "secondary" :
-                    "destructive"
-                  }>
-                    {book.difficulty_level === "beginner" ? "مبتدی" :
-                     book.difficulty_level === "intermediate" ? "متوسط" :
+                  <div className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                    book.level === "beginner" ? "bg-primary text-primary-foreground" :
+                    book.level === "intermediate" ? "bg-secondary text-secondary-foreground" :
+                    "bg-destructive text-destructive-foreground"
+                  }`}>
+                    {book.level === "beginner" ? "مبتدی" :
+                     book.level === "intermediate" ? "متوسط" :
                      "پیشرفته"}
-                  </Badge>
+                  </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={book.is_published ? "success" : "secondary"}>
-                    {book.is_published ? "منتشر شده" : "پیش‌نویس"}
-                  </Badge>
+                  <div className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                    book.is_active ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100" :
+                    "bg-secondary text-secondary-foreground"
+                  }`}>
+                    {book.is_active ? "منتشر شده" : "پیش‌نویس"}
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="text-sm">
-                    <p>{book.book_statistics?.[0]?.total_readers || 0} خواننده</p>
+                    <p>{book.read_count || 0} خواننده</p>
                     <p className="text-muted-foreground">
-                      {book.book_statistics?.[0]?.completed_readers || 0} تکمیل شده
+                      {Math.round((book.rating || 0) * 100)}% رضایت
                     </p>
                   </div>
                 </TableCell>
@@ -150,7 +165,11 @@ async function BooksTable() {
   )
 }
 
-export default function BooksPage() {
+export default function BooksPage({
+  searchParams
+}: {
+  searchParams?: { search?: string }
+}) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -158,7 +177,7 @@ export default function BooksPage() {
       </div>
 
       <Suspense fallback={<BooksTableSkeleton />}>
-        <BooksTable />
+        <BooksTable searchQuery={searchParams?.search} />
       </Suspense>
     </div>
   )

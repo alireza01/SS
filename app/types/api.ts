@@ -2,11 +2,11 @@ export interface ApiKey {
   id: string
   name: string
   key: string
-  type: string
-  created_by: string
-  created_at: string
-  last_used_at: string | null
-  is_active: boolean
+  type: ApiKeyType
+  createdAt: string
+  lastUsed: string | null
+  isActive: boolean
+  created_by?: string
 }
 
 export type ApiKeyType = 'custom' | 'gemini' | 'system' 

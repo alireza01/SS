@@ -25,8 +25,6 @@ export interface Book {
   categories: Category[];
   createdAt: string;
   rating?: number;
-  book_statistics?: BookStatistics[];
-  difficulty_level: "beginner" | "intermediate" | "advanced";
-  is_published: boolean;
-  created_at: string;
+  bookStatistics?: BookStatistics[];
+  isPublished: boolean;
 } 

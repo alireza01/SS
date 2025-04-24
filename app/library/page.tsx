@@ -6,7 +6,6 @@ import { LibraryClient } from "@/components/library/library-client"
 import { LibraryHeader } from "@/components/library/library-header"
 import { Skeleton } from "@/components/ui/skeleton"
 import { createServerClient } from "@/lib/supabase/app-server"
-import { type Book } from "@/types/books"
 
 export const metadata = {
   title: "کتابخانه | کتاب‌یار",
@@ -157,14 +156,14 @@ async function LibraryContent({
 
 function LibrarySkeleton() {
   return (
-    <div className="space-y-8 mt-8">
-      <div className="flex gap-4 flex-wrap">
+    <div className="mt-8 space-y-8">
+      <div className="flex flex-wrap gap-4">
         {Array.from({ length: 6 }).map((_, i) => (
           <Skeleton key={i} className="h-10 w-24" />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (
           <Skeleton key={i} className="h-[360px]" />
         ))}
