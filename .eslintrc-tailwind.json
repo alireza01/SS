@@ -1,6 +1,14 @@
 {
+  "plugins": ["tailwindcss"],
   "extends": ["plugin:tailwindcss/recommended"],
   "rules": {
+    "tailwindcss/classnames-order": "warn",
     "tailwindcss/no-custom-classname": "warn"
+  },
+  "settings": {
+    "tailwindcss": {
+      "config": "tailwind.config.js",
+      "whitelist": []
+    }
   }
 } 

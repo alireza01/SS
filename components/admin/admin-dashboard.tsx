@@ -55,7 +55,7 @@ export function AdminDashboard({ stats, isLoading, error }: AdminDashboardProps)
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">تعداد کتاب‌ها</CardTitle>
-                <BookOpen className="text-muted-foreground size-4" />
+                <BookOpen className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
                 {isLoading ? (
@@ -78,7 +78,7 @@ export function AdminDashboard({ stats, isLoading, error }: AdminDashboardProps)
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">تعداد کاربران</CardTitle>
-                <Users className="text-muted-foreground size-4" />
+                <Users className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
                 {isLoading ? (
@@ -101,7 +101,7 @@ export function AdminDashboard({ stats, isLoading, error }: AdminDashboardProps)
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">تعداد واژگان</CardTitle>
-                <BookText className="text-muted-foreground size-4" />
+                <BookText className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
                 {isLoading ? (
@@ -124,7 +124,7 @@ export function AdminDashboard({ stats, isLoading, error }: AdminDashboardProps)
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">کاربران فعال</CardTitle>
-                <Activity className="text-muted-foreground size-4" />
+                <Activity className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
                 {isLoading ? (

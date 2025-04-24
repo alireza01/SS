@@ -7,7 +7,6 @@
     "plugin:import/recommended",
     "plugin:import/typescript",
     "plugin:jsx-a11y/recommended",
-    "plugin:tailwindcss/recommended",
     "prettier"
   ],
   "plugins": [
@@ -15,8 +14,7 @@
     "react",
     "import",
     "jsx-a11y",
-    "unused-imports",
-    "tailwindcss"
+    "unused-imports"
   ],
   "rules": {
     "react/react-in-jsx-scope": "off",
@@ -36,9 +34,7 @@
         "alphabetize": { "order": "asc", "caseInsensitive": true }
       }
     ],
-    "unused-imports/no-unused-imports": "error",
-    "tailwindcss/no-custom-classname": "off",
-    "tailwindcss/classnames-order": "warn"
+    "unused-imports/no-unused-imports": "error"
   },
   "settings": {
     "react": {
@@ -50,10 +46,6 @@
         "project": "./tsconfig.json"
       },
       "node": true
-    },
-    "tailwindcss": {
-      "callees": ["cn", "cva", "clsx"],
-      "config": "tailwind.config.js"
     }
   },
   "parser": "@typescript-eslint/parser",
